@@ -3,12 +3,27 @@
  */
 const axios = require('axios')
 
+if (process.argv.length !== 4) {
+  console.log('Only 2 args are allowed: URL and THREADS')
+  process.exit(1)
+}
+
 const URL = process.argv[2]
+if (typeof URL !== 'string' || URL.length < 10 || !URL.startsWith('http')) {
+  console.log('Invalid valud for URL', URL)
+  process.exit(1)
+}
 const THREADS = parseInt(process.argv[3] || 1, 10)
+if (typeof THREADS !== 'number' || isNaN(THREADS) || THREADS < 1 || THREADS > 9999) {
+  console.log('Invalid value for THREADS', THREADS, '\nOnly values between 1 and 6000 are allowed')
+  process.exit(1)
+}
+// interval between reqests
+const INTERVAL = 2
 
 // stop process is service is down within DELAY * ATTEMPTS
 const DELAY = 1 * 60 * 1000
-const ATTEMPTS = 60
+const ATTEMPTS = 5 * 60
 
 const INFO_INTERVAL = 60 * 1000 // 1 minute
 
@@ -25,12 +40,12 @@ const runner = async () => {
   const interval = setInterval(() => {
     if (failureAttempts === 0) {
       const requests_made = err + ok + 0.1
-      console.log('Total Req', requests_made, '|', 'Error Rate,%', Math.floor(100 * (err / (0.1 + requests_made))))
+      console.log('Total Req', Math.floor(requests_made), '|', 'Error Rate,%', Math.floor(100 * (err / (0.1 + requests_made))))
     }
   }, INFO_INTERVAL)
 
   while (true) {
-    await sleep(10)
+    await sleep(INTERVAL)
 
     if (pending < THREADS) {
       pending++
