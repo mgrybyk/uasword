@@ -11,7 +11,6 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "args": ["https://www.rbc.ru/", "50"],
             "program": "${workspaceFolder}/index.js"
         }
     ]
