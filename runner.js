@@ -6,13 +6,13 @@ const axios = require('axios')
 const URL = process.env.URL
 
 // make sure to not have more than 60000 per PC, ex 60 urls, 1000 MAX_CONCURRENT_REQUESTS per each
-const MAX_CONCURRENT_REQUESTS = parseInt(process.env.MAX_CONCURRENT_REQUESTS || 1, 10)
-// stop process is service is down within DELAY * ATTEMPTS
-const INTERVAL = 2
+let MAX_CONCURRENT_REQUESTS = parseInt(process.env.MAX_CONCURRENT_REQUESTS || 1, 10)
+// interval between requests. 1000 / 4 means 250 max requests per second (per worker) is allowed
+const INTERVAL = 4
 
-// stop process is service is down within DELAY * ATTEMPTS
+// stop process is service is down within DELAY * ATTEMPTS (2 hours)
 const DELAY = 1 * 60 * 1000
-const ATTEMPTS = 5 * 60
+const ATTEMPTS = 2 * 60
 
 if (
   typeof MAX_CONCURRENT_REQUESTS !== 'number' ||
@@ -29,21 +29,36 @@ if (typeof URL !== 'string' || URL.length < 10 || !URL.startsWith('http')) {
 }
 
 const runner = async () => {
-  console.log(`\nStarting process for ${URL} with ${MAX_CONCURRENT_REQUESTS} max concurrent requests...\n`)
+  console.log(`Starting process for ${URL} with ${MAX_CONCURRENT_REQUESTS} max concurrent requests...`)
 
   let pending = 0
   let err = 0
-  let ok = 0
 
   let failures = 0
   let failureAttempts = 0
 
+  let errRate = 0
+  let requests_made = 0
+
   const interval = setInterval(() => {
     if (failureAttempts === 0) {
-      const requests_made = err + ok + 0.1
-      console.log(URL, 'Total Req', Math.floor(requests_made), '|', 'Error Rate,%', Math.floor(100 * (err / (0.1 + requests_made))))
+      console.log(URL, 'Total Req', requests_made, '|', 'Error Rate,%', errRate, ' | ', 'R', MAX_CONCURRENT_REQUESTS)
+
+      if (errRate > 90) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.3) + 1
+      } else if (errRate > 80) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.2) + 1
+      } else if (errRate < 5) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.5) + 1
+      } else if (errRate < 1) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 2) + 1
+      } else if (errRate < 10) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.25) + 1
+      } else if (errRate < 20) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.1) + 1
+      }
     }
-  }, 60 * 1000)
+  }, 61 * 1000)
 
   while (true) {
     await sleep(INTERVAL)
@@ -54,7 +69,6 @@ const runner = async () => {
       client
         .get('')
         .then(() => {
-          ok++
           failures = 0
           failureAttempts = 0
         })
@@ -64,6 +78,8 @@ const runner = async () => {
         })
         .finally(() => {
           pending--
+          requests_made++
+          errRate = Math.floor(100 * (err / requests_made))
         })
     }
 
@@ -71,6 +87,7 @@ const runner = async () => {
     if (failures > MAX_CONCURRENT_REQUESTS) {
       console.log('WARN:', URL, 'down. Sleeping for', DELAY, 'ms')
       failureAttempts++
+      MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.5) + 1
       await sleep(DELAY)
     }
 
