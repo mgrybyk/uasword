@@ -12,7 +12,7 @@ const primary = async () => {
   }
 
   cluster.on('exit', (worker) => {
-    console.log(`WORKER ${urlList[i][0]} terminated.`)
+    console.log(`WORKER ${worker.process.pid} terminated.`)
   })
 }
 
