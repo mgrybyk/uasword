@@ -4,7 +4,7 @@ const urlList = require('./list.json')
 
 const primary = async () => {
   for (let i = 0; i < urlList.length; i++) {
-    await sleep(200)
+    await sleep(300)
     cluster.fork({
       URL: urlList[i][0],
       MAX_CONCURRENT_REQUESTS: urlList[i][1],

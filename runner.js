@@ -7,8 +7,8 @@ const URL = process.env.URL
 
 // make sure to not have more than 60000 per PC, ex 60 urls, 1000 MAX_CONCURRENT_REQUESTS per each
 let MAX_CONCURRENT_REQUESTS = parseInt(process.env.MAX_CONCURRENT_REQUESTS || 1, 10)
-// interval between requests. 1000 / 4 means 250 max requests per second (per worker) is allowed
-const INTERVAL = 4
+// interval between requests. 1000 / 2 means 500 max requests per second (per worker) is allowed
+const INTERVAL = 2
 
 // stop process is service is down within DELAY * ATTEMPTS (2 hours)
 const DELAY = 1 * 60 * 1000
@@ -32,7 +32,8 @@ const runner = async () => {
   console.log(`Starting process for ${URL} with ${MAX_CONCURRENT_REQUESTS} max concurrent requests...`)
 
   let pending = 0
-  let err = 0
+  let lastMinuteOk = 0
+  let lastMinuteErr = 0
 
   let failures = 0
   let failureAttempts = 0
@@ -45,18 +46,28 @@ const runner = async () => {
       console.log(URL, 'Total Req', requests_made, '|', 'Error Rate,%', errRate, ' | ', 'R', MAX_CONCURRENT_REQUESTS)
 
       if (errRate > 90) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.3) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.3)
       } else if (errRate > 80) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.2) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.2)
       } else if (errRate < 5) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.5) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.5)
       } else if (errRate < 1) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 2) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 2)
       } else if (errRate < 10) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.25) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.25)
       } else if (errRate < 20) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.1) + 1
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.1)
+      } else if (errRate < 30) {
+        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.05)
       }
+      if (MAX_CONCURRENT_REQUESTS > 9999) {
+        MAX_CONCURRENT_REQUESTS = 9999
+      } else if (MAX_CONCURRENT_REQUESTS < 1) {
+        MAX_CONCURRENT_REQUESTS = 1
+      }
+
+      lastMinuteOk = 0
+      lastMinuteErr = 0
     }
   }, 61 * 1000)
 
@@ -71,15 +82,18 @@ const runner = async () => {
         .then(() => {
           failures = 0
           failureAttempts = 0
+          lastMinuteOk++
         })
         .catch(() => {
-          err++
+          lastMinuteErr++
           failures++
         })
         .finally(() => {
           pending--
           requests_made++
-          errRate = Math.floor(100 * (err / requests_made))
+          if (lastMinuteErr > 0 || lastMinuteOk > 0) {
+            errRate = Math.floor(100 * (lastMinuteErr / (lastMinuteErr + lastMinuteOk)))
+          }
         })
     }
 
