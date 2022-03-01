@@ -1,12 +1,8 @@
-const cluster = require('cluster')
+const { main } = require('./main')
 
-if (cluster.isPrimary) {
-  require('./main')
+main()
 
-  if (!process.env.PORT) {
-    return
-  }
-
+if (process.env.PORT) {
   // some cloud services require http server to be running
   const express = require('express')
   const app = express()
@@ -14,6 +10,4 @@ if (cluster.isPrimary) {
   app.get('/', (req, res) => res.send('ok'))
 
   app.listen(process.env.PORT)
-} else {
-  require('./runner')
 }

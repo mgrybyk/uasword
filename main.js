@@ -1,21 +1,13 @@
-const cluster = require('cluster')
+const { sleep } = require('./sleep')
+const { runner } = require('./runner')
 
-const urlList = require('./list.json')
+const urlList = require(process.env.URL_LIST || './list.json')
 
-const primary = async () => {
+const main = async () => {
   for (let i = 0; i < urlList.length; i++) {
     await sleep(300)
-    cluster.fork({
-      URL: urlList[i][0],
-      MAX_CONCURRENT_REQUESTS: urlList[i][1],
-    })
+    runner(urlList[i][0], urlList[i][1])
   }
-
-  cluster.on('exit', (worker) => {
-    console.log(`WORKER ${worker.process.pid} terminated.`)
-  })
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-primary()
+module.exports = { main }

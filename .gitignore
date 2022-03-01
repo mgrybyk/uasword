@@ -1,1 +1,3 @@
 node_modules
+list_*.json
+!list_prev.json

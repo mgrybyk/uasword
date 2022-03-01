@@ -1,35 +1,18 @@
+const { sleep } = require('./sleep')
+const { spawnClientInstance } = require('./client')
+const { ATTEMPTS, FAILURE_DELAY, REQ_DELAY, INTERVAL, MAX_CONCURRENT_REQUESTS } = require('./constants')
+const { getConcurrentRequests, getUrl } = require('./args')
+
 /**
- * @type {import('axios').AxiosStatic}
+ * @param {string} url
+ * @param {number|string} cr CONCURRENT_REQUESTS
  */
-const axios = require('axios')
+const runner = async (url, cr) => {
+  const URL = getUrl(url)
+  let CONCURRENT_REQUESTS = getConcurrentRequests(cr)
+  console.log(`Starting process for ${URL} with ${CONCURRENT_REQUESTS} max concurrent requests...`)
 
-const URL = process.env.URL
-
-// make sure to not have more than 60000 per PC, ex 60 urls, 1000 MAX_CONCURRENT_REQUESTS per each
-let MAX_CONCURRENT_REQUESTS = parseInt(process.env.MAX_CONCURRENT_REQUESTS || 1, 10)
-// interval between requests. 1000 / 2 means 500 max requests per second (per worker) is allowed
-const INTERVAL = 2
-
-// stop process is service is down within DELAY * ATTEMPTS (2 hours)
-const DELAY = 1 * 60 * 1000
-const ATTEMPTS = 2 * 60
-
-if (
-  typeof MAX_CONCURRENT_REQUESTS !== 'number' ||
-  isNaN(MAX_CONCURRENT_REQUESTS) ||
-  MAX_CONCURRENT_REQUESTS < 1 ||
-  MAX_CONCURRENT_REQUESTS > 9999
-) {
-  console.log('Invalid value for MAX_CONCURRENT_REQUESTS', MAX_CONCURRENT_REQUESTS, '\nOnly values between 1 and 9999 are allowed')
-  process.exit(1)
-}
-if (typeof URL !== 'string' || URL.length < 10 || !URL.startsWith('http')) {
-  console.log('Invalid valud for URL', URL)
-  process.exit(1)
-}
-
-const runner = async () => {
-  console.log(`Starting process for ${URL} with ${MAX_CONCURRENT_REQUESTS} max concurrent requests...`)
+  const client = spawnClientInstance(URL)
 
   let pending = 0
   let lastMinuteOk = 0
@@ -43,38 +26,38 @@ const runner = async () => {
 
   const interval = setInterval(() => {
     if (failureAttempts === 0) {
-      console.log(URL, 'Total Req', requests_made, '|', 'Error Rate,%', errRate, ' | ', 'R', MAX_CONCURRENT_REQUESTS)
+      console.log(URL, '|', 'Req', requests_made, '|', 'Errors last min,%', errRate, '|', 'R', CONCURRENT_REQUESTS)
 
       if (errRate > 90) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.3)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.5)
       } else if (errRate > 80) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.2)
-      } else if (errRate < 5) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.5)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.8)
       } else if (errRate < 1) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 2)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 2)
+      } else if (errRate < 5) {
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.5)
       } else if (errRate < 10) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.25)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.3)
       } else if (errRate < 20) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.1)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.2)
       } else if (errRate < 30) {
-        MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 1.05)
+        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.05)
       }
-      if (MAX_CONCURRENT_REQUESTS > 9999) {
-        MAX_CONCURRENT_REQUESTS = 9999
-      } else if (MAX_CONCURRENT_REQUESTS < 1) {
-        MAX_CONCURRENT_REQUESTS = 1
+      if (CONCURRENT_REQUESTS > MAX_CONCURRENT_REQUESTS) {
+        CONCURRENT_REQUESTS = MAX_CONCURRENT_REQUESTS
+      } else if (CONCURRENT_REQUESTS < 1) {
+        CONCURRENT_REQUESTS = 1
       }
 
       lastMinuteOk = 0
       lastMinuteErr = 0
     }
-  }, 61 * 1000)
+  }, INTERVAL)
 
   while (true) {
-    await sleep(INTERVAL)
+    await sleep(REQ_DELAY)
 
-    if (pending < MAX_CONCURRENT_REQUESTS) {
+    if (pending < CONCURRENT_REQUESTS) {
       pending++
 
       client
@@ -97,38 +80,21 @@ const runner = async () => {
         })
     }
 
-    // pause if requests fail for all MAX_CONCURRENT_REQUESTS
-    if (failures > MAX_CONCURRENT_REQUESTS) {
-      console.log('WARN:', URL, 'down. Sleeping for', DELAY, 'ms')
+    // pause if requests fail for all CONCURRENT_REQUESTS
+    if (failures > CONCURRENT_REQUESTS) {
+      console.log('WARN:', URL, 'down. Sleeping for', FAILURE_DELAY, 'ms')
       failureAttempts++
-      MAX_CONCURRENT_REQUESTS = Math.floor(MAX_CONCURRENT_REQUESTS * 0.5) + 1
-      await sleep(DELAY)
+      CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.25) + 1
+      await sleep(FAILURE_DELAY)
     }
 
     // stop process
     if (failureAttempts >= ATTEMPTS) {
       clearInterval(interval)
-      console.log('INFO:', URL, 'is still down after', ATTEMPTS * DELAY, 'ms.', 'Terminating...')
+      console.log('INFO:', URL, 'is still down after', ATTEMPTS * FAILURE_DELAY, 'ms.', 'Terminating...')
       return
     }
   }
 }
 
-const client = axios.create({
-  baseURL: URL,
-  timeout: 20000,
-  headers: {
-    'User-Agent':
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
-    'Upgrade-Insecure-Requests': '1',
-    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Accept-Language': '*',
-    'Cache-Control': 'max-age=0',
-    Connection: 'keep-alive',
-  },
-})
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-runner()
+module.exports = { runner }
