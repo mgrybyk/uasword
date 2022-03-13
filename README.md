@@ -1,4 +1,6 @@
-# query-url-p 
+# uasword 
+
+> Optimised version of https://github.com/opengs/uashield
 
 ## Installation
 
