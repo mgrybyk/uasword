@@ -14,6 +14,10 @@ In the repo folder run `node index`
 
 The list of targets is provided by [uashield](https://github.com/opengs/uashield), see the [sites.json](https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json)
 
+## Docker
+
+Docker image published to https://hub.docker.com/r/atools/uasword
+
 ## Azure Custom Data
 
 ```
