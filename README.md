@@ -4,15 +4,13 @@
 
 See also https://help-ukraine-win.super.site/
 
-## Installation
+## Installation and Running
 
-- make sure to have NodeJS 16 installed
-- clone the repo
-- run `npm install`
-
-## Running
-
-In the repo folder run `node index`
+- make sure to have [NodeJS 16](https://nodejs.org/en/download/) installed
+- clone the repo with [git](https://git-scm.com/download) `git clone https://github.com/mgrybyk/uasword.git`
+- `cd uasword`
+- install modules `npm install`
+- run `node index`
 
 ## Targets
 
