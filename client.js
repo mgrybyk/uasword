@@ -8,7 +8,7 @@ const validateStatus = () => true
 const spawnClientInstance = (baseURL) =>
   create({
     baseURL,
-    timeout: 10000,
+    timeout: 12000,
     validateStatus,
   })
 
