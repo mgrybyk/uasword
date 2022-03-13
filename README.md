@@ -35,10 +35,8 @@ sudo apt-get install -y \
 curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-mkdir -p /opt
-cd /opt
-git clone https://github.com/mgrybyk/query-url-p.git
-cd query-url-p
+mkdir -p /opt && cd /opt
+git clone https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
 
 node index >log.log 2>&1
