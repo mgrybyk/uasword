@@ -63,6 +63,11 @@ const runner = async (url, eventEmitter) => {
   }
   let adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
 
+  eventEmitter.once('RUNNER_STOP', () => {
+    isRunning = false
+    clearInterval(adaptInterval)
+  })
+
   while (isRunning) {
     await sleep(REQ_DELAY)
 

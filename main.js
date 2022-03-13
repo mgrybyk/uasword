@@ -18,12 +18,17 @@ const main = async () => {
   eventEmitter.setMaxListeners(100)
 
   let urlList = await getSites()
-
-  await run(urlList, eventEmitter)
+  await run(eventEmitter, urlList)
 
   statsLogger(eventEmitter)
+  siteListUpdater(eventEmitter, urlList)
+}
 
-  // add new sites
+/**
+ * @param {EventEmitter} eventEmitter
+ * @param {string[]} urlList
+ */
+const siteListUpdater = (eventEmitter, urlList) => {
   setInterval(async () => {
     const updatedUrlList = await getSites({ ignoreError: true })
     const newUrlList = updatedUrlList.filter((s) => !urlList.includes(s))
@@ -32,12 +37,16 @@ const main = async () => {
       console.log('\nUpdating url list, added', newUrlList.length, 'urls\n')
       urlList.length = 0
       urlList = newUrlList
-      run(urlList, eventEmitter)
+      run(eventEmitter, urlList)
     }
   }, urlsPoolInterval)
 }
 
-const run = async (urlList, eventEmitter) => {
+/**
+ * @param {EventEmitter} eventEmitter
+ * @param {string[]} urlList
+ */
+const run = async (eventEmitter, urlList) => {
   for (let i = 0; i < urlList.length; i++) {
     await sleep(1000)
     runner(urlList[i], eventEmitter)
