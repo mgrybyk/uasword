@@ -1,6 +1,8 @@
 # uasword 
 
-> Optimised version of https://github.com/opengs/uashield
+> Optimised headless version of https://github.com/opengs/uashield
+
+See also https://help-ukraine-win.super.site/
 
 ## Installation
 
