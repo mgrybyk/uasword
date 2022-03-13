@@ -13,12 +13,18 @@ const main = async () => {
 
   // add new sites
   setInterval(async () => {
-    const updatedUrlList = await getSites()
+    const updatedUrlList =
+      (await getSites().catch(() => {
+        console.log('Failed to get urls list from github')
+      })) || []
     const newUrlList = updatedUrlList.filter((s) => !urlList.includes(s))
-    urlList.length = 0
-    urlList = newUrlList
-    run(urlList)
-  }, 5 * 60 * 1000)
+    if (newUrlList.length > 0) {
+      console.log('=== Updating url list, added', newUrlList.length, 'urls ===')
+      urlList.length = 0
+      urlList = newUrlList
+      run(urlList)
+    }
+  }, 15 * 60 * 1000)
 }
 
 const run = async (urlList) => {
