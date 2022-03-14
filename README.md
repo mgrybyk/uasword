@@ -43,6 +43,8 @@ npm install
 
 echo "@reboot cd /opt/uasword && git fetch && git rebase && node index >log.log 2>&1" > /opt/cronjob
 crontab /opt/cronjob
+
+node index >log.log 2>&1
 ```
 
 ### See Logs in Azure
