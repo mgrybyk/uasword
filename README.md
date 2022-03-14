@@ -41,7 +41,8 @@ mkdir -p /opt && cd /opt
 git clone https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
 
-node index >log.log 2>&1
+echo "@reboot cd /opt/uasword && git fetch && git rebase && node index" >> /opt/cronjob
+crontab /opt/cronjob
 ```
 
 ### See Logs in Azure
