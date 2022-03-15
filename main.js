@@ -13,7 +13,7 @@ const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const sitesUrls = [
   'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
-  'https://raw.githubusercontent.com/mgrybyk/uasword/master/sites.json',
+  'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
 ]
 
 const main = async () => {
