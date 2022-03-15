@@ -1,6 +1,6 @@
 const { sleep } = require('./helpers')
-const { spawnClientInstance } = require('./client')
-const { generateRequestHeaders } = require('./headers')
+const { spawnClientInstance } = require('./client/client')
+const { generateRequestHeaders } = require('./client/headers')
 
 // interval between requests. 1000 / 2 means 500 max requests per second (per worker) is allowed
 const REQ_DELAY = 2

@@ -1,6 +1,6 @@
 const UserAgent = require('user-agents')
 
-const { randomBool, randomInt } = require('./helpers')
+const { randomBool, randomInt } = require('../helpers')
 
 const headersMap = {
   UA: 'User-Agent',
