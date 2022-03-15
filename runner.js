@@ -72,7 +72,24 @@ const runner = async (url, eventEmitter) => {
   while (isRunning) {
     await sleep(REQ_DELAY)
 
-    if (pending < concurrentReqs) {
+    if (concurrentReqs < 2 || errRate > 99) {
+      clearInterval(adaptInterval)
+      console.log(url, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
+      failureAttempts++
+      // stop process
+      if (failureAttempts >= ATTEMPTS) {
+        isRunning = false
+      } else {
+        concurrentReqs = 3
+        isActive = false
+        await sleep(FAILURE_DELAY)
+        isActive = true
+        lastMinuteOk = 0
+        lastMinuteErr = 0
+        errRate = 0
+        adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
+      }
+    } else if (pending < concurrentReqs) {
       pending++
 
       client
@@ -92,23 +109,6 @@ const runner = async (url, eventEmitter) => {
           new_reqs++
           errRate = Math.floor(100 * ((1 + lastMinuteErr) / (1 + lastMinuteErr + lastMinuteOk)))
         })
-    } else if (concurrentReqs < 2 || errRate > 99) {
-      clearInterval(adaptInterval)
-      console.log(url, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
-      failureAttempts++
-      // stop process
-      if (failureAttempts >= ATTEMPTS) {
-        isRunning = false
-      } else {
-        concurrentReqs = 3
-        isActive = false
-        await sleep(FAILURE_DELAY)
-        isActive = true
-        lastMinuteOk = 0
-        lastMinuteErr = 0
-        errRate = 0
-        adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
-      }
     }
   }
 
