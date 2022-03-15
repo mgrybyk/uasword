@@ -114,7 +114,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
     }
   }
 
-  return urlList
+  return [...new Set(urlList)]
 }
 
 module.exports = { main }
