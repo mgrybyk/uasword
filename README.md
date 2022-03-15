@@ -22,7 +22,7 @@ Docker image published to https://hub.docker.com/r/atools/uasword
 
 ## Azure Custom Data
 
-![Azure Custom data](azure_custom_data.jpg)[]
+![Azure Custom data](docs/azure_custom_data.jpg)[]
 
 ```
 #!/bin/sh
