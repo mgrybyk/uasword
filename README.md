@@ -41,7 +41,7 @@ mkdir -p /opt && cd /opt
 git clone https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
 
-echo "@reboot cd /opt/uasword && git fetch && git rebase && npm install && node index >log.log 2>&1" > /opt/cronjob
+echo "@reboot cd /opt/uasword && git fetch && git rebase && npm i && node index >log.log 2>&1" > /opt/cronjob
 crontab /opt/cronjob
 
 node index >log.log 2>&1
