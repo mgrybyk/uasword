@@ -1,1 +1,6 @@
-[{ "page": "https://rsdn.ru" }, { "page": "https://www.banki.ru/" }, { "page": "https://bki-okb.ru/" }]
+[
+  { "page": "https://rsdn.ru" },
+  { "page": "https://www.banki.ru/" },
+  { "page": "https://bki-okb.ru/" },
+  { "page": "https://mtuf.ru" }
+]
