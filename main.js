@@ -11,7 +11,10 @@ const { runner } = require('./runner')
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
-const sitesUrl = process.env.SITES_URL || 'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json'
+const sitesUrls = [
+  'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
+  'https://raw.githubusercontent.com/mgrybyk/uasword/master/sites.json',
+]
 
 const main = async () => {
   const eventEmitter = new EventEmitter()
@@ -31,12 +34,12 @@ const main = async () => {
 const siteListUpdater = (eventEmitter, urlList) => {
   setInterval(async () => {
     const updatedUrlList = await getSites({ ignoreError: true })
-    const newUrlList = updatedUrlList.filter((s) => !urlList.includes(s))
 
-    if (newUrlList.length > 0) {
-      console.log('\nUpdating url list, added', newUrlList.length, 'urls\n')
+    if (updatedUrlList.filter((s) => !urlList.includes(s)).length > 0) {
+      eventEmitter.emit('RUNNER_STOP')
+      console.log('\n', new Date().toISOString(), 'Updating urls list\n')
       urlList.length = 0
-      urlList = newUrlList
+      urlList = updatedUrlList
       run(eventEmitter, urlList)
     }
   }, urlsPoolInterval)
@@ -70,10 +73,20 @@ const statsLogger = (eventEmitter) => {
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
+      const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
       activeRunners.forEach(({ url, total_reqs, errRate, rps, concurrentReqs }) => {
         console.log(url, '|', 'Req', total_reqs, '|', 'Current Errors,%', errRate, '| rps', rps, '| CR', concurrentReqs)
       })
-      console.log('Total Requests', totalRequests, '| Active runners', activeRunners.length, 'of', stats.length)
+      console.log(
+        'Total Requests',
+        totalRequests,
+        '| Active runners',
+        activeRunners.length,
+        'of',
+        stats.length,
+        '| Total rps',
+        totalRps
+      )
     }, 1000)
   }, logInterval)
 }
@@ -83,19 +96,25 @@ const statsLogger = (eventEmitter) => {
  * @returns {Promise<string[]>}
  */
 const getSites = async ({ ignoreError = false } = {}) => {
-  try {
-    const res = await axios.get(sitesUrl)
-    assert(Array.isArray(res.data))
-    assert(res.data.length > 0)
-    assert(typeof res.data[0].page === 'string')
-    return res.data.map((x) => x.page)
-  } catch (err) {
-    if (ignoreError) {
-      console.log('WARN: Failed to get new urls list from github')
-      return []
+  let urlList = []
+
+  for (const sitesUrl of sitesUrls) {
+    try {
+      const res = await axios.get(sitesUrl)
+      assert(Array.isArray(res.data))
+      if (res.data.length > 0) {
+        assert(typeof res.data[0].page === 'string')
+      }
+      urlList.push(...res.data.map((x) => x.page))
+    } catch (err) {
+      if (ignoreError) {
+        console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
+      }
+      throw err
     }
-    throw err
   }
+
+  return urlList
 }
 
 module.exports = { main }

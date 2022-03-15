@@ -63,10 +63,11 @@ const runner = async (url, eventEmitter) => {
   }
   let adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
 
-  eventEmitter.once('RUNNER_STOP', () => {
+  const stopEventFn = () => {
     isRunning = false
     clearInterval(adaptInterval)
-  })
+  }
+  eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
     await sleep(REQ_DELAY)
@@ -111,7 +112,9 @@ const runner = async (url, eventEmitter) => {
     }
   }
 
+  clearInterval(adaptInterval)
   eventEmitter.off('GET_STATS', getStatsFn)
+  eventEmitter.off('RUNNER_STOP', stopEventFn)
   console.log('Stopping runner for:', url)
 }
 
