@@ -49,4 +49,4 @@ node index >log.log 2>&1
 
 ### See Logs in Azure
 
-`sudo tail -f /opt/query-url-p/log.log`
+`sudo tail -f /opt/uasword/log.log`
