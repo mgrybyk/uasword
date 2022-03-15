@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "node index",
+    "lint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "keywords": [],
   "author": "",
@@ -13,5 +14,11 @@
     "axios": "^0.26.0",
     "express": "^4.17.3",
     "user-agents": "^1.0.953"
+  },
+  "devDependencies": {
+    "eslint": "^8.11.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.5.1"
   }
 }
