@@ -1,5 +1,5 @@
 {
-  "name": "query-url-p",
+  "name": "uasword",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +11,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^0.26.1",
     "express": "^4.17.3",
-    "user-agents": "^1.0.953"
+    "user-agents": "^1.0.956"
   },
   "devDependencies": {
     "eslint": "^8.11.0",
