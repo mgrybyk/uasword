@@ -6,7 +6,7 @@ const { generateRequestHeaders } = require('./client/headers')
 const FAILURE_DELAY = 5 * 60 * 1000
 const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 1200
+const MAX_CONCURRENT_REQUESTS = 1000
 
 /**
  * @param {string} url
@@ -105,9 +105,8 @@ const runner = async (url, eventEmitter) => {
           new_reqs++
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
-    } else {
-      await sleep(1)
     }
+    await sleep(1)
   }
 
   clearInterval(adaptInterval)
