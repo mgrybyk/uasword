@@ -50,9 +50,9 @@ const runner = async (url, eventEmitter) => {
 
       if (errRate > 40) {
         concurrentReqs = Math.floor(rps * 0.6)
-      } else if (errRate > 20) {
+      } else if (errRate > 15) {
         concurrentReqs = Math.floor(rps * 0.8)
-      } else if (errRate > 9) {
+      } else if (errRate > 5) {
         concurrentReqs = Math.floor(rps * 0.9)
       } else if (errRate < 2) {
         concurrentReqs = Math.min(Math.floor((rps + 4) * 1.2), MAX_CONCURRENT_REQUESTS)
