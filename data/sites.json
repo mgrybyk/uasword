@@ -1,11 +1,7 @@
 [
-  { "page": "https://rsdn.ru" },
-  { "page": "https://www.banki.ru/" },
-  { "page": "https://bki-okb.ru/" },
+  { "page": "https://rsdn.ru" }, 
   { "page": "https://mtuf.ru" },
   { "page": "https://roe.ru/" },
-  { "page": "https://www.vsoloviev.ru/" },
-  { "page": "https://tr.sputniknews.com/" },
   { "page": "https://www.aydinlik.com.tr/" },
-  { "page": "https://kontur.ru/" }
+  { "page": "http://ombudsman.mos.ru/" }
 ]
