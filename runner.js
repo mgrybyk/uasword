@@ -39,7 +39,7 @@ const runner = async (url, eventEmitter) => {
   let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { printUrl, total_reqs, new_reqs, errRate, rps, concurrentReqs, isActive })
+    eventEmitter.emit('RUNNER_STATS', { url: printUrl, total_reqs, new_reqs, errRate, rps, concurrentReqs, isActive })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
