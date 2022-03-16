@@ -1,12 +1,12 @@
 /**
  * @type {import('axios').AxiosStatic}
  */
-const { create } = require('axios')
+const axios = require('axios')
 
 const validateStatus = () => true
 
 const spawnClientInstance = (baseURL) =>
-  create({
+  axios.create({
     baseURL,
     timeout: 12000,
     validateStatus,

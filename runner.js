@@ -8,6 +8,8 @@ const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
 const MAX_CONCURRENT_REQUESTS = 1000
 
+const cloudflareServer = 'cloudflare'
+
 /**
  * @param {string} url
  * @param {EventEmitter} eventEmitter
@@ -92,9 +94,13 @@ const runner = async (url, eventEmitter) => {
         .get(url, {
           headers: generateRequestHeaders(),
         })
-        .then(() => {
-          failureAttempts = 0
-          lastMinuteOk++
+        .then((res) => {
+          if (res.status === 403 && res.headers.server === cloudflareServer) {
+            lastMinuteErr++
+          } else {
+            failureAttempts = 0
+            lastMinuteOk++
+          }
         })
         .catch(() => {
           lastMinuteErr++
