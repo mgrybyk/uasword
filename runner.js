@@ -19,9 +19,10 @@ const runner = async (url, eventEmitter) => {
     console.log('Invalid value for URL', url)
     return
   }
+  const printUrl = url.length > 63 ? url.substring(0, 63) + '...' : url
 
   let concurrentReqs = 5
-  console.log('Starting process for', url)
+  console.log('Starting process for', printUrl)
 
   const client = spawnClientInstance(url)
 
@@ -38,7 +39,7 @@ const runner = async (url, eventEmitter) => {
   let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { url, total_reqs, new_reqs, errRate, rps, concurrentReqs, isActive })
+    eventEmitter.emit('RUNNER_STATS', { printUrl, total_reqs, new_reqs, errRate, rps, concurrentReqs, isActive })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
@@ -72,7 +73,7 @@ const runner = async (url, eventEmitter) => {
   while (isRunning) {
     if (concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
-      console.log(url, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
+      console.log(printUrl, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
       failureAttempts++
       // stop process
       if (failureAttempts >= ATTEMPTS) {
@@ -91,7 +92,7 @@ const runner = async (url, eventEmitter) => {
       pending++
 
       client
-        .get(url, {
+        .get('', {
           headers: generateRequestHeaders(),
         })
         .then((res) => {
@@ -118,7 +119,7 @@ const runner = async (url, eventEmitter) => {
   clearInterval(adaptInterval)
   eventEmitter.off('GET_STATS', getStatsFn)
   eventEmitter.off('RUNNER_STOP', stopEventFn)
-  console.log('Stopping runner for:', url)
+  console.log('Stopping runner for:', printUrl)
 }
 
 module.exports = { runner }

