@@ -68,7 +68,7 @@ const runner = async (url, eventEmitter) => {
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
-    if (concurrentReqs < 3 || errRate > 99) {
+    if (concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
       console.log(url, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
       failureAttempts++
