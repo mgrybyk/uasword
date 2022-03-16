@@ -2,13 +2,11 @@ const { sleep } = require('./helpers')
 const { spawnClientInstance } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
 
-// interval between requests. 1000 / 2 means 500 max requests per second (per worker) is allowed
-const REQ_DELAY = 2
-// stop process is service is down within DELAY * ATTEMPTS (2 hours)
-const FAILURE_DELAY = 2 * 60 * 1000
-const ATTEMPTS = 5
+// stop process is service is down within DELAY * ATTEMPTS (1 hour)
+const FAILURE_DELAY = 5 * 60 * 1000
+const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 9999
+const MAX_CONCURRENT_REQUESTS = 1200
 
 /**
  * @param {string} url
@@ -20,7 +18,7 @@ const runner = async (url, eventEmitter) => {
     return
   }
 
-  let concurrentReqs = 3
+  let concurrentReqs = 5
   console.log('Starting process for', url)
 
   const client = spawnClientInstance(url)
@@ -57,7 +55,7 @@ const runner = async (url, eventEmitter) => {
       } else if (errRate > 9) {
         concurrentReqs = Math.floor(rps * 0.9)
       } else if (errRate < 2) {
-        concurrentReqs = Math.min(Math.floor((rps + 2) * 1.2), MAX_CONCURRENT_REQUESTS)
+        concurrentReqs = Math.min(Math.floor((rps + 4) * 1.2), MAX_CONCURRENT_REQUESTS)
       }
     }
   }
@@ -70,9 +68,7 @@ const runner = async (url, eventEmitter) => {
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
-    await sleep(REQ_DELAY)
-
-    if (concurrentReqs < 2 || errRate > 99) {
+    if (concurrentReqs < 3 || errRate > 99) {
       clearInterval(adaptInterval)
       console.log(url, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
       failureAttempts++
@@ -80,7 +76,7 @@ const runner = async (url, eventEmitter) => {
       if (failureAttempts >= ATTEMPTS) {
         isRunning = false
       } else {
-        concurrentReqs = 3
+        concurrentReqs = 5
         isActive = false
         await sleep(FAILURE_DELAY)
         isActive = true
@@ -107,8 +103,10 @@ const runner = async (url, eventEmitter) => {
           pending--
           total_reqs++
           new_reqs++
-          errRate = Math.floor(100 * ((1 + lastMinuteErr) / (1 + lastMinuteErr + lastMinuteOk)))
+          errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
+    } else {
+      await sleep(1)
     }
   }
 
