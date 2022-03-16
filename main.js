@@ -13,15 +13,15 @@ const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const sitesUrls =
   process.env.SKIP_SHIELD_LISTS === 'true'
-    ? [
+    ? []
+    : [
         'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
         'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
       ]
-    : []
 const sitesPlainListUrls =
   process.env.SKIP_DDOSER_LISTS === 'true'
-    ? ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
-    : []
+    ? []
+    : ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
 
 const main = async () => {
   const eventEmitter = new EventEmitter()
