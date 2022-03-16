@@ -13,12 +13,13 @@
   "dependencies": {
     "axios": "^0.26.1",
     "express": "^4.17.3",
-    "user-agents": "^1.0.956"
+    "user-agents": "^1.0.957"
   },
   "devDependencies": {
     "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "prettier": "^2.5.1"
+    "husky": "^7.0.4",
+    "prettier": "^2.6.0"
   }
 }
