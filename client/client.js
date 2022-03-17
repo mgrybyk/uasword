@@ -10,6 +10,7 @@ const spawnClientInstance = (baseURL) =>
     baseURL,
     timeout: 12000,
     validateStatus,
+    responseType: 'arraybuffer',
   })
 
 module.exports = { spawnClientInstance }
