@@ -44,6 +44,13 @@ const runner = async (url, eventEmitter) => {
   }
   eventEmitter.on('GET_STATS', getStatsFn)
 
+  // update cookies every 10 minutes
+  const updateCookiesInterval = setInterval(async () => {
+    if (isActive && isRunning) {
+      cookies = await pw(url)
+    }
+  }, 10 * 60 * 1000)
+
   const adaptivenessInterval = 15
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
@@ -117,6 +124,7 @@ const runner = async (url, eventEmitter) => {
     await sleep(1)
   }
 
+  clearInterval(updateCookiesInterval)
   clearInterval(adaptInterval)
   eventEmitter.off('GET_STATS', getStatsFn)
   eventEmitter.off('RUNNER_STOP', stopEventFn)
