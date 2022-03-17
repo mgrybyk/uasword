@@ -1,4 +1,4 @@
-FROM tarampampam/node:16-alpine
+FROM mcr.microsoft.com/playwright:v1.20.0-focal
 
 WORKDIR /app
 COPY . ./
