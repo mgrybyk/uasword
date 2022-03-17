@@ -10,6 +10,7 @@ const headersMap = {
   CacheControl: 'Cache-Control',
   UpgradeInsecureRequests: 'Upgrade-Insecure-Requests',
   AcceptEncoding: 'Accept-Encoding',
+  Cookie: 'Cookie',
 }
 
 const acceptEncoding = 'gzip, deflate, br'
@@ -34,12 +35,15 @@ const secHeaders = {
   'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"',
 }
 
-const generateRequestHeaders = () => {
+const generateRequestHeaders = (cookies) => {
   const headers = getAdditionalRandomHeaders()
 
   headers[headersMap.UA] = new UserAgent().toString()
   headers[headersMap.AcceptLanguage] = acceptLanguages[randomInt(acceptLanguages.length)]
   headers[headersMap.Accept] = accept
+  if (cookies) {
+    headers[headersMap.Cookie] = cookies
+  }
 
   return headers
 }

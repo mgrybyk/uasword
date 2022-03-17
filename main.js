@@ -7,6 +7,7 @@ const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
 const { runner } = require('./runner')
+const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
@@ -24,6 +25,8 @@ const sitesPlainListUrls =
     : ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
 
 const main = async () => {
+  await runBrowser()
+
   const eventEmitter = new EventEmitter()
   eventEmitter.setMaxListeners(100)
 

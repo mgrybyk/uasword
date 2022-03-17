@@ -1,6 +1,7 @@
 const { sleep } = require('./helpers')
 const { spawnClientInstance } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
+const { pw } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
 const FAILURE_DELAY = 5 * 60 * 1000
@@ -22,6 +23,7 @@ const runner = async (url, eventEmitter) => {
   let concurrentReqs = 5
   console.log('Starting process for', printUrl)
 
+  let cookies = await pw(url)
   const client = spawnClientInstance(url)
 
   let isRunning = true
@@ -80,6 +82,7 @@ const runner = async (url, eventEmitter) => {
         concurrentReqs = 5
         isActive = false
         await sleep(FAILURE_DELAY)
+        cookies = await pw(url)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
@@ -91,7 +94,7 @@ const runner = async (url, eventEmitter) => {
 
       client
         .get('', {
-          headers: generateRequestHeaders(),
+          headers: generateRequestHeaders(cookies),
         })
         .then((res) => {
           if (res.status === 403) {
