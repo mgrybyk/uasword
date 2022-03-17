@@ -9,8 +9,20 @@ let contextQueue = 0
 const runBrowser = async () => {
   try {
     const { chromium } = require('@playwright/test')
+
+    // try install browser to make update easier for existing users. Safe to remove in 2 weeks.
+    try {
+      const cli = require('playwright-core/lib/utils/registry')
+      const executables = [cli.registry.findExecutable('chromium')]
+      await cli.registry.installDeps(executables, false)
+      await cli.registry.install(executables)
+    } catch {
+      console.log('Failed to install browser or deps')
+    }
+
     browser = await chromium.launch()
   } catch {
+    console.log('WARN: Unable to use real browser to overcome antiddos protection.')
     browser = null
   }
 }

@@ -10,8 +10,7 @@ See also https://help-ukraine-win.super.site/
 - clone the repo with [git](https://git-scm.com/download) `git clone https://github.com/mgrybyk/uasword.git`
 - `cd uasword`
 - install modules `npm install`
-- download chromium `npx playwright install chromium`
-- download chromium dependecies `npx playwright install-deps`
+- download chromium `npx playwright install --with-deps chromium`
 - run `node index`
 
 ## Targets
@@ -42,8 +41,7 @@ sudo apt-get install -y nodejs
 mkdir -p /opt && cd /opt
 git clone https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
-npx playwright install chromium
-npx playwright install-deps
+npx playwright install --with-deps chromium
 
 echo "@reboot cd /opt/uasword && git fetch && git rebase && npm i && npx playwright install chromium && node index >log.log 2>&1" > /opt/cronjob
 crontab /opt/cronjob
