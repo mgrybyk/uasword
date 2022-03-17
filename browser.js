@@ -1,7 +1,8 @@
+const os = require('os')
 const { sleep } = require('./helpers')
 
 let browser
-const MAX_BROWSER_CONTEXTS = 20
+const MAX_BROWSER_CONTEXTS = os.freemem() > 4294967296 ? 20 : 10
 let activeContexts = 0
 let contextQueue = 0
 
@@ -19,8 +20,8 @@ const pw = async (baseURL) => {
     return null
   }
 
-  contextQueue++
   console.log('browser contexts queue', contextQueue, 'active', activeContexts, 'of', MAX_BROWSER_CONTEXTS)
+  contextQueue++
   while (activeContexts >= MAX_BROWSER_CONTEXTS) {
     await sleep(500)
   }
