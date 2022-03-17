@@ -11,6 +11,7 @@ See also https://help-ukraine-win.super.site/
 - `cd uasword`
 - install modules `npm install`
 - download chromium `npx playwright install chromium`
+- download chromium dependecies `npx playwright install-deps`
 - run `node index`
 
 ## Targets
@@ -42,6 +43,7 @@ mkdir -p /opt && cd /opt
 git clone https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
 npx playwright install chromium
+npx playwright install-deps
 
 echo "@reboot cd /opt/uasword && git fetch && git rebase && npm i && npx playwright install chromium && node index >log.log 2>&1" > /opt/cronjob
 crontab /opt/cronjob
