@@ -7,7 +7,7 @@ const { pw } = require('./browser')
 const FAILURE_DELAY = 5 * 60 * 1000
 const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 32
+const MAX_CONCURRENT_REQUESTS = 64
 
 /**
  * @param {string} url
