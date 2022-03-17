@@ -6,7 +6,7 @@ const { generateRequestHeaders } = require('./client/headers')
 const FAILURE_DELAY = 5 * 60 * 1000
 const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 1000
+const MAX_CONCURRENT_REQUESTS = 32
 
 /**
  * @param {string} url
