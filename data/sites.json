@@ -1,12 +1,3 @@
 [
-  { "page": "https://rsdn.ru" }, 
-  { "page": "https://mtuf.ru" },
-  { "page": "https://roe.ru/" },
-  { "page": "https://www.aydinlik.com.tr/" },
-  { "page": "http://ombudsman.mos.ru/" },
-  { "page": "https://www.gov.ru/" },
-  { "page": "https://sbis.ru/" },
-  { "page": "https://casebook.ru/" },
-  { "page": "https://xn----7sbbe6addecj3bpgj0a0fvd.xn--p1ai/" },
-  { "page": "https://op-russia.live/" }
+  { "page": "https://pravda.ru" }
 ]
