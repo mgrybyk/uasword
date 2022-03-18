@@ -7,7 +7,7 @@ const { pw } = require('./browser')
 const FAILURE_DELAY = 5 * 60 * 1000
 const ATTEMPTS = 12
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 64
+let MAX_CONCURRENT_REQUESTS = 16
 
 /**
  * @param {string} url
@@ -131,4 +131,18 @@ const runner = async (url, eventEmitter) => {
   console.log('Stopping runner for:', printUrl)
 }
 
-module.exports = { runner }
+const updateMaxConcurrentRequestsPerSite = (activeRunners) => {
+  if (activeRunners < 3) {
+    MAX_CONCURRENT_REQUESTS = 256
+  } else if (activeRunners < 5) {
+    MAX_CONCURRENT_REQUESTS = 128
+  } else if (activeRunners < 9) {
+    MAX_CONCURRENT_REQUESTS = 64
+  } else if (activeRunners < 17) {
+    MAX_CONCURRENT_REQUESTS = 32
+  } else {
+    MAX_CONCURRENT_REQUESTS = 16
+  }
+}
+
+module.exports = { runner, updateMaxConcurrentRequestsPerSite }

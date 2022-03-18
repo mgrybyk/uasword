@@ -2,7 +2,8 @@ const os = require('os')
 const { sleep } = require('./helpers')
 
 let browser
-const MAX_BROWSER_CONTEXTS = os.freemem() > 4294967296 ? 20 : 10
+const freemem = os.freemem() / (1024 * 1024)
+const MAX_BROWSER_CONTEXTS = freemem > 4 ? 20 : freemem > 3 ? 10 : freemem > 2 ? 5 : freemem > 1 ? 2 : 1
 let activeContexts = 0
 let contextQueue = 0
 
@@ -11,13 +12,15 @@ const runBrowser = async () => {
     const { chromium } = require('@playwright/test')
 
     // try install browser to make update easier for existing users. Safe to remove in 2 weeks.
-    try {
-      const cli = require('playwright-core/lib/utils/registry')
-      const executables = [cli.registry.findExecutable('chromium')]
-      await cli.registry.installDeps(executables, false)
-      await cli.registry.install(executables)
-    } catch {
-      console.log('Failed to install browser or deps')
+    if (!process.env.IS_DOCKER) {
+      try {
+        const cli = require('playwright-core/lib/utils/registry')
+        const executables = [cli.registry.findExecutable('chromium')]
+        await cli.registry.installDeps(executables, false)
+        await cli.registry.install(executables)
+      } catch {
+        console.log('Failed to install browser or deps')
+      }
     }
 
     browser = await chromium.launch()

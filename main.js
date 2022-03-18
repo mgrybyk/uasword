@@ -6,7 +6,7 @@ const { assert } = require('console')
 const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
-const { runner } = require('./runner')
+const { runner, updateMaxConcurrentRequestsPerSite } = require('./runner')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
@@ -83,6 +83,7 @@ const statsLogger = (eventEmitter) => {
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
+      updateMaxConcurrentRequestsPerSite(activeRunners.length)
       const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
       activeRunners.forEach(({ url, total_reqs, errRate, rps, concurrentReqs }) => {
         console.log(url, '|', 'Req', total_reqs, '|', 'Current Errors,%', errRate, '| rps', rps, '| CR', concurrentReqs)
