@@ -4,10 +4,12 @@ const { generateRequestHeaders } = require('./client/headers')
 const { pw } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
-const FAILURE_DELAY = 5 * 60 * 1000
-const ATTEMPTS = 12
+const FAILURE_DELAY = 15 * 1000
+const ATTEMPTS = 240
 // concurrent requests adopts based on error rate, but won't exceed the max value
 let MAX_CONCURRENT_REQUESTS = 16
+
+const ignoredErrCode = 'ECONNABORTED'
 
 /**
  * @param {string} url
@@ -65,7 +67,7 @@ const runner = async (url, eventEmitter) => {
       } else if (errRate > 5) {
         concurrentReqs = Math.floor(rps * 0.9)
       } else if (errRate < 2) {
-        concurrentReqs = Math.min(Math.floor((rps + 4) * 1.2), MAX_CONCURRENT_REQUESTS)
+        concurrentReqs = Math.min(Math.floor((rps + 1) * 1.2), MAX_CONCURRENT_REQUESTS)
       }
     }
   }
@@ -111,8 +113,11 @@ const runner = async (url, eventEmitter) => {
             lastMinuteOk++
           }
         })
-        .catch(() => {
-          lastMinuteErr++
+        .catch((err) => {
+          if (err.code !== ignoredErrCode) {
+            console.log(err.code)
+            lastMinuteErr++
+          }
         })
         .finally(() => {
           pending--
@@ -121,7 +126,7 @@ const runner = async (url, eventEmitter) => {
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
     }
-    await sleep(1)
+    await sleep(2)
   }
 
   clearInterval(updateCookiesInterval)
