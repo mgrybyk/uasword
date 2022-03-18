@@ -115,7 +115,6 @@ const runner = async (url, eventEmitter) => {
         })
         .catch((err) => {
           if (err.code !== ignoredErrCode) {
-            console.log(err.code)
             lastMinuteErr++
           }
         })
