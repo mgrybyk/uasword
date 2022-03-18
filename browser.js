@@ -47,6 +47,7 @@ const pw = async (baseURL) => {
   try {
     context = await browser.newContext({ baseURL })
     const page = await context.newPage()
+    page.on('dialog', (dialog) => dialog.accept())
     await page.goto('')
     await sleep(10000)
     const storageState = await page.context().storageState()
