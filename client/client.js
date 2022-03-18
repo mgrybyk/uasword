@@ -11,6 +11,7 @@ const spawnClientInstance = (baseURL) =>
     timeout: 12000,
     validateStatus,
     responseType: 'arraybuffer',
+    maxRedirects: 10,
   })
 
 module.exports = { spawnClientInstance }
