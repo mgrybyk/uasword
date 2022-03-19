@@ -80,20 +80,15 @@ const statsLogger = (eventEmitter) => {
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
-      const totalRps = activeRunners.reduce((prev, { activeContexts }) => prev + activeContexts, 0)
       activeRunners.forEach(({ url, total_reqs, errRate, activeContexts }) => {
         console.log(url, '|', 'Attacks', total_reqs, '|', 'Current Errors,%', errRate, '| Active ctx', activeContexts)
       })
-      console.log(
-        'Total Attacks',
-        totalRequests,
-        '| Active runners',
-        activeRunners.length,
-        'of',
-        stats.length,
-        '| Total Active ctx',
-        totalRps
-      )
+    }, 1000)
+  }, logInterval / 4)
+
+  setInterval(() => {
+    setTimeout(() => {
+      console.log('Total Attacks', totalRequests)
     }, 1000)
   }, logInterval)
 }

@@ -23,6 +23,7 @@ const runner = async (url, eventEmitter) => {
   let lastMinuteOk = 0
   let lastMinuteErr = 0
   let failureAttempts = 0
+  let firstAttempt = true
 
   let errRate = 0
   let total_reqs = 0
@@ -56,12 +57,14 @@ const runner = async (url, eventEmitter) => {
       } else {
         isActive = false
         await sleep(FAILURE_DELAY)
+        firstAttempt = true
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
         errRate = 0
       }
-    } else if (isAvailalbe()) {
+    } else if (isAvailalbe() && (firstAttempt || lastMinuteOk > 0)) {
+      firstAttempt = false
       pw(url)
         .then(() => {
           failureAttempts = 0
