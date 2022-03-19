@@ -2,8 +2,8 @@ const { sleep } = require('./helpers')
 const { pw, isAvailalbe, getActiveContexts } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
-const FAILURE_DELAY = 25 * 1000
-const ATTEMPTS = 200
+const FAILURE_DELAY = 60 * 1000
+const ATTEMPTS = 60
 
 /**
  * @param {string} url
@@ -76,7 +76,7 @@ const runner = async (url, eventEmitter) => {
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
     }
-    await sleep(500)
+    await sleep(140)
   }
 
   eventEmitter.off('GET_STATS', getStatsFn)
