@@ -70,7 +70,7 @@ const runner = async (url, eventEmitter) => {
       } else if (errRate > 5) {
         concurrentReqs = Math.floor(rps * 0.9)
       } else if (errRate < 2) {
-        concurrentReqs = Math.min(Math.floor((rps + 1) * 1.2), MAX_CONCURRENT_REQUESTS)
+        concurrentReqs = Math.min(Math.floor((rps + 4) * 1.05), MAX_CONCURRENT_REQUESTS)
       }
     }
   }
