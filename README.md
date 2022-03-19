@@ -1,13 +1,11 @@
 # uasword 
 
-> Optimised headless version of https://github.com/opengs/uashield
-
-See also https://help-ukraine-win.super.site/
+Browser-only version!
 
 ## Installation and Running
 
 - make sure to have [NodeJS 16](https://nodejs.org/en/download/) installed
-- clone the repo with [git](https://git-scm.com/download) `git clone https://github.com/mgrybyk/uasword.git`
+- clone the repo with [git](https://git-scm.com/download) `git clone -b pw-only https://github.com/mgrybyk/uasword.git`
 - `cd uasword`
 - install modules `npm install`
 - download chromium `npx playwright install --with-deps chromium`
@@ -15,11 +13,7 @@ See also https://help-ukraine-win.super.site/
 
 ## Targets
 
-The list of targets is provided by [uashield](https://github.com/opengs/uashield), see the [sites.json](https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json)
-
-## Docker
-
-Docker image published to https://hub.docker.com/r/atools/uasword
+https://raw.githubusercontent.com/mgrybyk/uasword/pw-only/data/sites.json
 
 ## Azure Custom Data
 
@@ -39,7 +33,7 @@ curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 mkdir -p /opt && cd /opt
-git clone https://github.com/mgrybyk/uasword.git && cd uasword
+git clone -b pw-only https://github.com/mgrybyk/uasword.git && cd uasword
 npm install
 npx playwright install --with-deps chromium
 

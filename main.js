@@ -17,7 +17,7 @@ const sitesUrls =
     ? []
     : [
         // 'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
-        'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
+        'https://raw.githubusercontent.com/mgrybyk/uasword/pw-only/data/sites.json',
       ]
 const sitesPlainListUrls = process.env.SKIP_DDOSER_LISTS === 'true' ? [] : [] // ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
 
