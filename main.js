@@ -12,14 +12,7 @@ const { runBrowser } = require('./browser')
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
-const sitesUrls =
-  process.env.SKIP_SHIELD_LISTS === 'true'
-    ? []
-    : [
-        // 'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
-        'https://raw.githubusercontent.com/mgrybyk/uasword/pw-only/data/sites.json',
-      ]
-const sitesPlainListUrls = process.env.SKIP_DDOSER_LISTS === 'true' ? [] : [] // ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
+const sitesUrls = ['https://raw.githubusercontent.com/mgrybyk/uasword/pw-only/data/sites.json']
 
 const main = async () => {
   await runBrowser()
@@ -36,13 +29,13 @@ const main = async () => {
 
 /**
  * @param {EventEmitter} eventEmitter
- * @param {string[]} urlList
+ * @param {Array<{page:string,max_concurrency:number}>} urlList
  */
 const siteListUpdater = (eventEmitter, urlList) => {
   setInterval(async () => {
     const updatedUrlList = await getSites({ ignoreError: true })
 
-    if (updatedUrlList.filter((s) => !urlList.includes(s)).length > 0) {
+    if (JSON.stringify(updatedUrlList) !== JSON.stringify(urlList)) {
       eventEmitter.emit('RUNNER_STOP')
       console.log('\n', new Date().toISOString(), 'Updating urls list\n')
       urlList.length = 0
@@ -54,12 +47,12 @@ const siteListUpdater = (eventEmitter, urlList) => {
 
 /**
  * @param {EventEmitter} eventEmitter
- * @param {string[]} urlList
+ * @param {Array<{page:string,max_concurrency:number}>} urlList
  */
 const run = async (eventEmitter, urlList) => {
   for (let i = 0; i < urlList.length; i++) {
     await sleep(1000)
-    runner(urlList[i], eventEmitter)
+    runner(urlList[i].page, urlList[i].max_concurrency, eventEmitter)
   }
 }
 
@@ -107,7 +100,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
       if (res.data.length > 0) {
         assert(typeof res.data[0].page === 'string')
       }
-      urlList.push(...res.data.map((x) => x.page))
+      urlList.push(...res.data)
     } catch (err) {
       if (ignoreError) {
         console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
@@ -116,20 +109,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
     }
   }
 
-  for (const sitesUrl of sitesPlainListUrls) {
-    try {
-      const res = await axios.get(sitesUrl)
-      assert(typeof res.data === 'string')
-      urlList.push(...res.data.split('\n').filter((s) => s.startsWith('http')))
-    } catch (err) {
-      if (ignoreError) {
-        console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
-      }
-      throw err
-    }
-  }
-
-  return [...new Set(urlList)]
+  return urlList
 }
 
 module.exports = { main }

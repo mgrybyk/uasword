@@ -62,6 +62,7 @@ const pw = async (baseURL) => {
 
 const blacklist = [
   /.*\.jpg/,
+  /.*\.jpeg/,
   /.*\.png/,
   /.*\.woff/,
   /.*\.woff\?.*/,
@@ -79,6 +80,7 @@ const blacklist = [
   /.*doubleclick\.net\/.*/,
   /.*twimg\.com\/.*/,
   'https://www.youtube.com/**',
+  'https://i.ytimg.com/**',
   'https://maps.google.com/**',
   'https://translate.google.com/**',
   'https://consent.cookiebot.com/**',

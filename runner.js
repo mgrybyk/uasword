@@ -5,13 +5,13 @@ const { pw, isAvailalbe, getActiveContexts, MAX_BROWSER_CONTEXTS } = require('./
 const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 60
 
-const MAX_CONCURRENT_REQUESTS = MAX_BROWSER_CONTEXTS
-
 /**
  * @param {string} url
+ * @param {maxConcurrency} number
  * @param {EventEmitter} eventEmitter
  */
-const runner = async (url, eventEmitter) => {
+const runner = async (url, maxConcurrency, eventEmitter) => {
+  const MAX_CONCURRENT_REQUESTS = maxConcurrency || MAX_BROWSER_CONTEXTS
   if (typeof url !== 'string' || url.length < 10 || !url.startsWith('http')) {
     console.log('Invalid value for URL', url)
     return
