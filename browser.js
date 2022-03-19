@@ -4,6 +4,7 @@ const { sleep } = require('./helpers')
 let browser
 const freemem = os.freemem() / (1024 * 1024 * 1024)
 const MAX_BROWSER_CONTEXTS = process.env.PWDEBUG === 'true' ? 1 : Math.floor(freemem * 5)
+console.log('Max browser contexts', MAX_BROWSER_CONTEXTS)
 let activeContexts = 0
 let contextQueue = 0
 
@@ -92,4 +93,4 @@ const abortBlocked = async (ctx) => {
 const isAvailalbe = () => contextQueue === 0
 const getActiveContexts = () => activeContexts
 
-module.exports = { runBrowser, pw, isAvailalbe, getActiveContexts }
+module.exports = { runBrowser, pw, isAvailalbe, getActiveContexts, MAX_BROWSER_CONTEXTS }

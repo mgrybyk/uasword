@@ -1,9 +1,11 @@
 const { sleep } = require('./helpers')
-const { pw, isAvailalbe, getActiveContexts } = require('./browser')
+const { pw, isAvailalbe, getActiveContexts, MAX_BROWSER_CONTEXTS } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
 const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 60
+
+const MAX_CONCURRENT_REQUESTS = MAX_BROWSER_CONTEXTS
 
 /**
  * @param {string} url
@@ -16,14 +18,15 @@ const runner = async (url, eventEmitter) => {
   }
   const printUrl = url.length > 63 ? url.substring(0, 63) + '...' : url
 
+  let concurrentReqs = 1
   console.log('Starting process for', printUrl)
 
   let isRunning = true
   let isActive = true
+  let pending = 0
   let lastMinuteOk = 0
   let lastMinuteErr = 0
   let failureAttempts = 0
-  let firstAttempt = true
 
   let errRate = 0
   let total_reqs = 0
@@ -42,29 +45,52 @@ const runner = async (url, eventEmitter) => {
   }
   eventEmitter.on('GET_STATS', getStatsFn)
 
+  const adaptivenessInterval = 10
+  const adaptIntervalFn = () => {
+    if (failureAttempts === 0) {
+      lastMinuteOk = 0
+      lastMinuteErr = 0
+
+      if (errRate > 20) {
+        concurrentReqs = Math.floor(concurrentReqs * 0.6)
+      } else if (errRate > 10) {
+        concurrentReqs = Math.floor(concurrentReqs * 0.8)
+      } else if (errRate > 5) {
+        concurrentReqs = Math.floor(concurrentReqs * 0.9)
+      } else if (errRate < 2) {
+        concurrentReqs = Math.min(Math.floor((concurrentReqs + 3) * 1.2), MAX_CONCURRENT_REQUESTS)
+      }
+    }
+  }
+  let adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
+
   const stopEventFn = () => {
+    clearInterval(adaptInterval)
     isRunning = false
   }
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
-    if (errRate > 90) {
+    if (concurrentReqs < 1 || errRate > 90) {
+      clearInterval(adaptInterval)
       console.log(printUrl, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
       failureAttempts++
       // stop process
       if (failureAttempts >= ATTEMPTS) {
         isRunning = false
       } else {
+        concurrentReqs = 1
         isActive = false
         await sleep(FAILURE_DELAY)
-        firstAttempt = true
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
         errRate = 0
+        adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
       }
-    } else if (isAvailalbe() && (firstAttempt || lastMinuteOk > 0)) {
-      firstAttempt = false
+    } else if (isAvailalbe() && pending < concurrentReqs) {
+      pending++
+
       pw(url)
         .then(() => {
           failureAttempts = 0
@@ -74,6 +100,7 @@ const runner = async (url, eventEmitter) => {
           lastMinuteErr++
         })
         .finally(() => {
+          pending--
           total_reqs++
           new_reqs++
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
@@ -82,6 +109,7 @@ const runner = async (url, eventEmitter) => {
     await sleep(140)
   }
 
+  clearInterval(adaptInterval)
   eventEmitter.off('GET_STATS', getStatsFn)
   eventEmitter.off('RUNNER_STOP', stopEventFn)
   console.log('Stopping runner for:', printUrl)
