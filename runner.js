@@ -4,8 +4,8 @@ const { generateRequestHeaders } = require('./client/headers')
 const { pw } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
-const FAILURE_DELAY = 25 * 1000
-const ATTEMPTS = 200
+const FAILURE_DELAY = 60 * 1000
+const ATTEMPTS = 60
 // concurrent requests adopts based on error rate, but won't exceed the max value
 let MAX_CONCURRENT_REQUESTS = 16
 
