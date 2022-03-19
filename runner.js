@@ -4,10 +4,12 @@ const { generateRequestHeaders } = require('./client/headers')
 const { pw } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
-const FAILURE_DELAY = 15 * 1000
-const ATTEMPTS = 240
+const FAILURE_DELAY = 25 * 1000
+const ATTEMPTS = 200
 // concurrent requests adopts based on error rate, but won't exceed the max value
 let MAX_CONCURRENT_REQUESTS = 16
+
+const UPDATE_COOKIES_INTERVAL = 10 * 60 * 1000
 
 const ignoredErrCode = 'ECONNABORTED'
 
@@ -47,11 +49,12 @@ const runner = async (url, eventEmitter) => {
   eventEmitter.on('GET_STATS', getStatsFn)
 
   // update cookies every 10 minutes
-  const updateCookiesInterval = setInterval(async () => {
+  const updateCookiesFn = async () => {
     if (isActive && isRunning) {
       cookies = await pw(url)
     }
-  }, 10 * 60 * 1000)
+  }
+  let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
 
   const adaptivenessInterval = 15
   const adaptIntervalFn = () => {
@@ -82,6 +85,7 @@ const runner = async (url, eventEmitter) => {
   while (isRunning) {
     if (concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
+      clearInterval(updateCookiesInterval)
       console.log(printUrl, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
       failureAttempts++
       // stop process
@@ -91,12 +95,15 @@ const runner = async (url, eventEmitter) => {
         concurrentReqs = 5
         isActive = false
         await sleep(FAILURE_DELAY)
-        cookies = await pw(url)
+        if (failureAttempts < 2) {
+          cookies = await pw(url)
+        }
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
         errRate = 0
         adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
+        updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
       }
     } else if (pending < concurrentReqs) {
       pending++

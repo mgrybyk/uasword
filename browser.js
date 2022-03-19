@@ -3,7 +3,7 @@ const { sleep } = require('./helpers')
 
 let browser
 const freemem = os.freemem() / (1024 * 1024)
-const MAX_BROWSER_CONTEXTS = freemem > 4 ? 20 : freemem > 3 ? 10 : freemem > 2 ? 5 : freemem > 1 ? 2 : 1
+const MAX_BROWSER_CONTEXTS = freemem > 4 ? 20 : freemem > 3 ? 8 : freemem > 2 ? 4 : freemem > 1 ? 2 : 1
 let activeContexts = 0
 let contextQueue = 0
 
