@@ -9,7 +9,14 @@
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": ["<node_internals>/**"],
-      // "env": { "PWDEBUG": "true" },
+      "program": "${workspaceFolder}/index.js"
+    },
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "PWDEBUG",
+      "skipFiles": ["<node_internals>/**"],
+      "env": { "PWDEBUG": "true" },
       "program": "${workspaceFolder}/index.js"
     }
   ]

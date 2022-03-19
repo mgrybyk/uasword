@@ -3,7 +3,7 @@ const { sleep } = require('./helpers')
 
 let browser
 const freemem = os.freemem() / (1024 * 1024 * 1024)
-const MAX_BROWSER_CONTEXTS = Math.floor(freemem * 5)
+const MAX_BROWSER_CONTEXTS = process.env.PWDEBUG === 'true' ? 1 : Math.floor(freemem * 5)
 let activeContexts = 0
 let contextQueue = 0
 
