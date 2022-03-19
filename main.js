@@ -6,7 +6,7 @@ const { assert } = require('console')
 const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
-const { runner, updateMaxConcurrentRequestsPerSite } = require('./runner')
+const { runner } = require('./runner')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
@@ -16,13 +16,10 @@ const sitesUrls =
   process.env.SKIP_SHIELD_LISTS === 'true'
     ? []
     : [
-        'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
+        // 'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
         'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
       ]
-const sitesPlainListUrls =
-  process.env.SKIP_DDOSER_LISTS === 'true'
-    ? []
-    : ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
+const sitesPlainListUrls = process.env.SKIP_DDOSER_LISTS === 'true' ? [] : [] // ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
 
 const main = async () => {
   await runBrowser()
@@ -83,19 +80,18 @@ const statsLogger = (eventEmitter) => {
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
-      updateMaxConcurrentRequestsPerSite(activeRunners.length)
-      const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
-      activeRunners.forEach(({ url, total_reqs, errRate, rps, concurrentReqs }) => {
-        console.log(url, '|', 'Req', total_reqs, '|', 'Current Errors,%', errRate, '| rps', rps, '| CR', concurrentReqs)
+      const totalRps = activeRunners.reduce((prev, { activeContexts }) => prev + activeContexts, 0)
+      activeRunners.forEach(({ url, total_reqs, errRate, activeContexts }) => {
+        console.log(url, '|', 'Attacks', total_reqs, '|', 'Current Errors,%', errRate, '| Active ctx', activeContexts)
       })
       console.log(
-        'Total Requests',
+        'Total Attacks',
         totalRequests,
         '| Active runners',
         activeRunners.length,
         'of',
         stats.length,
-        '| Total rps',
+        '| Total Active ctx',
         totalRps
       )
     }, 1000)

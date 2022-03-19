@@ -2,8 +2,8 @@ const os = require('os')
 const { sleep } = require('./helpers')
 
 let browser
-const freemem = os.freemem() / (1024 * 1024)
-const MAX_BROWSER_CONTEXTS = freemem > 4 ? 20 : freemem > 3 ? 8 : freemem > 2 ? 4 : freemem > 1 ? 2 : 1
+const freemem = os.freemem() / (1024 * 1024 * 1024)
+const MAX_BROWSER_CONTEXTS = Math.floor(freemem * 4)
 let activeContexts = 0
 let contextQueue = 0
 
@@ -35,9 +35,9 @@ const pw = async (baseURL) => {
     return null
   }
 
-  console.log('browser contexts queue', contextQueue, 'active', activeContexts, 'of', MAX_BROWSER_CONTEXTS)
+  // console.log('browser contexts queue', contextQueue, 'active', activeContexts, 'of', MAX_BROWSER_CONTEXTS)
   contextQueue++
-  while (activeContexts >= MAX_BROWSER_CONTEXTS) {
+  while (activeContexts >= MAX_BROWSER_CONTEXTS || os.freemem() < 524288000) {
     await sleep(500)
   }
   activeContexts++
@@ -46,18 +46,11 @@ const pw = async (baseURL) => {
   let context
   try {
     context = await browser.newContext({ baseURL })
+    await abortBlocked(context)
     const page = await context.newPage()
     page.on('dialog', (dialog) => dialog.accept())
     await page.goto('')
-    await sleep(10000)
-    const storageState = await page.context().storageState()
-    const cookies = storageState.cookies.reduce((prev, { name, value }) => {
-      prev.push(`${name}=${value};`)
-      return prev
-    }, [])
-    return cookies.join(' ')
-  } catch {
-    return null
+    await sleep(5000)
   } finally {
     if (context) {
       await context.close()
@@ -66,4 +59,37 @@ const pw = async (baseURL) => {
   }
 }
 
-module.exports = { runBrowser, pw }
+const blacklist = [
+  /.*\.jpg/,
+  /.*\.png/,
+  /.*\.woff/,
+  /.*\.woff\?.*/,
+  /.*\.ttf/,
+  /.*\.woff2/,
+  /.*\.css/,
+  /.*\.css\?.*/,
+  /.*googleapis\.com\/.*/,
+  /.*twitter\.com\/.*/,
+  /.*\/themes\/.*/,
+  /.*drupal\.js.*/,
+  /.*jquery.*/,
+  /.*jcaption.*/,
+  /.*webform.*/,
+  /.*doubleclick\.net\/.*/,
+  /.*twimg\.com\/.*/,
+  'https://www.youtube.com/**',
+  'https://maps.google.com/**',
+  'https://translate.google.com/**',
+  'https://consent.cookiebot.com/**',
+]
+
+const abortBlocked = async (ctx) => {
+  for (const url of blacklist) {
+    await ctx.route(url, (r) => r.abort())
+  }
+}
+
+const isAvailalbe = () => contextQueue === 0
+const getActiveContexts = () => activeContexts
+
+module.exports = { runBrowser, pw, isAvailalbe, getActiveContexts }
