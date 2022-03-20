@@ -118,10 +118,10 @@ const getSites = async ({ ignoreError = false } = {}) => {
       }
     }
   } catch (err) {
-    if (ignoreError) {
-      console.log(new Date().toISOString(), 'WARN: Failed to fetch config', configUrl)
+    console.log(new Date().toISOString(), 'WARN: Failed to fetch config', configUrl)
+    if (!ignoreError) {
+      throw err
     }
-    throw err
   }
 
   urlList.push(
@@ -154,10 +154,10 @@ const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false
       }
       urlList.push(...parseFn(res.data))
     } catch (err) {
-      if (ignoreError) {
-        console.log(new Date().toISOString(), 'WARN: Failed to fetch new urls list from', sitesUrl)
+      console.log(new Date().toISOString(), 'WARN: Failed to fetch new urls list from', sitesUrl)
+      if (!ignoreError) {
+        throw err
       }
-      throw err
     }
   }
   return urlList
