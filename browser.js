@@ -5,7 +5,6 @@ let browser
 const freemem = os.freemem() / (1024 * 1024 * 1024)
 const MAX_BROWSER_CONTEXTS = Math.floor(freemem * 4)
 let activeContexts = 0
-let contextQueue = 0
 
 const runBrowser = async () => {
   try {
@@ -24,6 +23,7 @@ const runBrowser = async () => {
     }
 
     browser = await chromium.launch()
+    console.log('Max browser contexts', MAX_BROWSER_CONTEXTS)
   } catch {
     console.log('WARN: Unable to use real browser to overcome antiddos protection.')
     browser = null
@@ -35,13 +35,10 @@ const pw = async (baseURL) => {
     return null
   }
 
-  console.log('browser contexts queue', contextQueue, 'active', activeContexts, 'of', MAX_BROWSER_CONTEXTS)
-  contextQueue++
   while (activeContexts >= MAX_BROWSER_CONTEXTS || os.freemem() < 524288000) {
     await sleep(500)
   }
   activeContexts++
-  contextQueue--
 
   let context
   try {

@@ -2,7 +2,6 @@
  * @type {import('axios').AxiosStatic}
  */
 const axios = require('axios')
-const { assert } = require('console')
 const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
@@ -12,17 +11,7 @@ const { runBrowser } = require('./browser')
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
-const sitesUrls =
-  process.env.SKIP_SHIELD_LISTS === 'true'
-    ? []
-    : [
-        'https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json',
-        'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json',
-      ]
-const sitesPlainListUrls =
-  process.env.SKIP_DDOSER_LISTS === 'true'
-    ? []
-    : ['https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt']
+const configUrl = 'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/config.json'
 
 const main = async () => {
   await runBrowser()
@@ -85,9 +74,13 @@ const statsLogger = (eventEmitter) => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
       updateMaxConcurrentRequestsPerSite(activeRunners.length)
       const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
-      activeRunners.forEach(({ url, total_reqs, errRate, rps, concurrentReqs }) => {
-        console.log(url, '|', 'Req', total_reqs, '|', 'Current Errors,%', errRate, '| rps', rps, '| CR', concurrentReqs)
+      const tableData = []
+      activeRunners.forEach(({ url, total_reqs, errRate, rps }) => {
+        tableData.push({ url, Requests: total_reqs, 'Current Errors,%': errRate, 'Req/s': rps })
       })
+      if (activeRunners.length > 0) {
+        console.table(tableData)
+      }
       console.log(
         'Total Requests',
         totalRequests,
@@ -96,7 +89,8 @@ const statsLogger = (eventEmitter) => {
         'of',
         stats.length,
         '| Total rps',
-        totalRps
+        totalRps,
+        '\n'
       )
     }, 1000)
   }, logInterval)
@@ -107,38 +101,64 @@ const statsLogger = (eventEmitter) => {
  * @returns {Promise<string[]>}
  */
 const getSites = async ({ ignoreError = false } = {}) => {
-  let urlList = []
+  const urlList = []
 
+  // try get config
+  const sitesUrls = { string: [], object: [] }
+  try {
+    const res = await axios.get(configUrl)
+    for (const urlConfig of res.data.urls) {
+      if (
+        process.env[`ENABLE_${urlConfig.name}_LISTS`] === 'true' ||
+        (urlConfig.enabled && process.env[`SKIP_${urlConfig.name}_LISTS`] !== 'true')
+      ) {
+        sitesUrls[urlConfig.type].push(urlConfig.url)
+      }
+    }
+  } catch (err) {
+    if (ignoreError) {
+      console.log(new Date().toISOString(), 'WARN: Failed to fetch config', configUrl)
+    }
+    throw err
+  }
+
+  urlList.push(
+    ...(await getSitesFn(
+      sitesUrls.object,
+      (d) => !Array.isArray(d) || (d.length > 0 && typeof d[0].page !== 'string'),
+      (d) => d.map((x) => x.page),
+      { ignoreError }
+    ))
+  )
+  urlList.push(
+    ...(await getSitesFn(
+      sitesUrls.string,
+      (d) => typeof d !== 'string',
+      (d) => d.split('\n').filter((s) => s.startsWith('http')),
+      { ignoreError }
+    ))
+  )
+
+  return [...new Set(urlList)]
+}
+
+const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false } = {}) => {
+  const urlList = []
   for (const sitesUrl of sitesUrls) {
     try {
       const res = await axios.get(sitesUrl)
-      assert(Array.isArray(res.data))
-      if (res.data.length > 0) {
-        assert(typeof res.data[0].page === 'string')
+      if (assertionFn(res.data)) {
+        throw new Error('Unable to parse site url', sitesUrl)
       }
-      urlList.push(...res.data.map((x) => x.page))
+      urlList.push(...parseFn(res.data))
     } catch (err) {
       if (ignoreError) {
-        console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
+        console.log(new Date().toISOString(), 'WARN: Failed to fetch new urls list from', sitesUrl)
       }
       throw err
     }
   }
-
-  for (const sitesUrl of sitesPlainListUrls) {
-    try {
-      const res = await axios.get(sitesUrl)
-      assert(typeof res.data === 'string')
-      urlList.push(...res.data.split('\n').filter((s) => s.startsWith('http')))
-    } catch (err) {
-      if (ignoreError) {
-        console.log(new Date().toISOString(), 'WARN: Failed to get new urls list from', sitesUrl)
-      }
-      throw err
-    }
-  }
-
-  return [...new Set(urlList)]
+  return urlList
 }
 
 module.exports = { main }
