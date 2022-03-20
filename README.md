@@ -23,32 +23,13 @@ Docker image published to https://hub.docker.com/r/atools/uasword
 
 ## Azure Custom Data
 
-![Azure Custom data](docs/azure_custom_data.jpg)[]
+![Azure Custom data](docs/azure_custom_data.png)
 
+Install:
 ```
-#!/bin/sh
-
-sudo apt-get install -y \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release \
-    build-essential
-
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-mkdir -p /opt && cd /opt
-git clone https://github.com/mgrybyk/uasword.git && cd uasword
-npm install
-npx playwright install --with-deps chromium
-
-echo "@reboot cd /opt/uasword && git fetch && git rebase && npm i && npx playwright install chromium && node index >log.log 2>&1" > /opt/cronjob
-crontab /opt/cronjob
-
-node index >log.log 2>&1
+sudo mkdir -p /opt && sudo git clone https://github.com/mgrybyk/uasword.git /opt/uasword && sudo /opt/uasword/setup.sh
 ```
 
 ### See Logs in Azure
 
-`sudo tail -f /opt/uasword/log.log`
+`journalctl -xe -u uasword.service -f`
