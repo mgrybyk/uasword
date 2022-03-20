@@ -1,7 +1,6 @@
 [
-  { "page": "https://vpnki.ru/questions/registration-form" },
-  { "page": "https://vpnki.ru/services/plan" },
-  { "page": "https://lenta.ru" },
+  { "page": "https://airport-rzhevka.ru/obzor-poiskovyx-sistem-aviabiletov/" },
+  { "page": "https://tp.media/r?marker=48286&trace_id=Zz62dfe72b5c0a43f3b25e0282-48286&p=4237&u=https%3A%2F%2Fhydra.aviasales.ru%3Forigin_name%3D%25D0%259C%25D0%25BE%25D1%2581%25D0%25BA%25D0%25B2%25D0%25B0%26origin_iata%3DMOW%26destination_name%3D%25D0%259D%25D0%25B8%25D1%2586%25D1%2586%25D0%25B0%26destination_iata%3DNCE%26%3D%26depart_date%3D2022-03-27%26return_date%3D2022-04-03%26with_request%3Dtrue%26adults%3D1%26children%3D0%26infants%3D0%26trip_class%3D0%26locale%3Dru%26one_way%3Dfalse%26currency%3Drub%26ct_guests%3D1%2520%25D0%25BF%25D0%25B0%25D1%2581%25D1%2581%25D0%25B0%25D0%25B6%25D0%25B8%25D1%2580%26ct_rooms%3D1" },
+  { "page": "https://www.aviasales.ru/search?origin_name=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0&origin_iata=MOW&destination_name=%D0%9D%D0%B8%D1%86%D1%86%D0%B0&destination_iata=NCE&depart_date=2022-03-27&return_date=2022-04-03&with_request=true&adults=1&children=0&infants=0&trip_class=0&locale=ru&one_way=false&currency=rub&ct_guests=1+%D0%BF%D0%B0%D1%81%D1%81%D0%B0%D0%B6%D0%B8%D1%80&ct_rooms=1&marker=48286.Zza242d3759bb1463984c74093-48286&__cf_chl_tk=QhY2qFMUewbg3Lz3YnI33vBPlawjItrQIZ_6AskZFW8-1647783546-0-gaNycGzNCOU" },
   { "page": "https://lenta.ru/rubrics/russia/" },
-  { "page": "https://lenta.ru/parts/text/" }
 ]
