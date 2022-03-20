@@ -147,12 +147,8 @@ const updateMaxConcurrentRequestsPerSite = (activeRunners) => {
     MAX_CONCURRENT_REQUESTS = 256
   } else if (activeRunners < 5) {
     MAX_CONCURRENT_REQUESTS = 128
-  } else if (activeRunners < 9) {
-    MAX_CONCURRENT_REQUESTS = 64
-  } else if (activeRunners < 17) {
-    MAX_CONCURRENT_REQUESTS = 32
   } else {
-    MAX_CONCURRENT_REQUESTS = 16
+    MAX_CONCURRENT_REQUESTS = 64
   }
 }
 
