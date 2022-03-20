@@ -1,4 +1,4 @@
 [
-  { page: "https://anex-tour.ru/hot-tours" },
-  { page: "https://travelata.ru/tury" }
+  { "page": "https://anex-tour.ru/hot-tours" },
+  { "page": "https://travelata.ru/tury" }
 ]
