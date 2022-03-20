@@ -1,5 +1,5 @@
 const { sleep } = require('./helpers')
-const { pw, isAvailalbe, getActiveContexts, MAX_BROWSER_CONTEXTS } = require('./browser')
+const { pw, isAvailalbe, MAX_BROWSER_CONTEXTS } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
 const FAILURE_DELAY = 60 * 1000
@@ -16,7 +16,7 @@ const runner = async (url, maxConcurrency, eventEmitter) => {
     console.log('Invalid value for URL', url)
     return
   }
-  const printUrl = url.length > 63 ? url.substring(0, 63) + '...' : url
+  const printUrl = url.length > 55 ? url.substring(0, 55) + '...' : url
 
   let concurrentReqs = 1
   console.log('Starting process for', printUrl)
@@ -38,7 +38,7 @@ const runner = async (url, maxConcurrency, eventEmitter) => {
       total_reqs,
       new_reqs,
       errRate,
-      activeContexts: getActiveContexts(),
+      pending,
       isActive,
     })
     new_reqs = 0

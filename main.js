@@ -7,7 +7,7 @@ const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
 const { runner } = require('./runner')
-const { runBrowser } = require('./browser')
+const { runBrowser, getActiveContexts } = require('./browser')
 
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
@@ -73,15 +73,21 @@ const statsLogger = (eventEmitter) => {
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
       const activeRunners = stats.filter(({ isActive }) => isActive)
-      activeRunners.forEach(({ url, total_reqs, errRate, activeContexts }) => {
-        console.log(url, '|', 'Attacks', total_reqs, '|', 'Current Errors,%', errRate, '| Active ctx', activeContexts)
-      })
+      const tableData = []
+      activeRunners
+        .sort((a, b) => b.pending - a.pending)
+        .forEach(({ url, total_reqs, errRate, pending }) => {
+          tableData.push({ url, Attacks: total_reqs, 'Errors,%': errRate, Ctx: pending })
+        })
+      if (activeRunners.length > 0) {
+        console.table(tableData)
+      }
     }, 1000)
-  }, logInterval / 4)
+  }, logInterval / 2)
 
   setInterval(() => {
     setTimeout(() => {
-      console.log('Total Attacks', totalRequests)
+      console.log('Total Attacks', totalRequests, '| Total Active ctx', getActiveContexts())
     }, 1000)
   }, logInterval)
 }
@@ -95,7 +101,13 @@ const getSites = async ({ ignoreError = false } = {}) => {
 
   for (const sitesUrl of sitesUrls) {
     try {
-      const res = await axios.get(sitesUrl)
+      const res = await axios.get(sitesUrl, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
       assert(Array.isArray(res.data))
       if (res.data.length > 0) {
         assert(typeof res.data[0].page === 'string')
