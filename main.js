@@ -75,9 +75,11 @@ const statsLogger = (eventEmitter) => {
       updateMaxConcurrentRequestsPerSite(activeRunners.length)
       const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
       const tableData = []
-      activeRunners.forEach(({ url, total_reqs, errRate, rps }) => {
-        tableData.push({ url, Requests: total_reqs, 'Current Errors,%': errRate, 'Req/s': rps })
-      })
+      activeRunners
+        .sort((a, b) => b.rps - a.rps)
+        .forEach(({ url, total_reqs, errRate, rps }) => {
+          tableData.push({ url, Requests: total_reqs, 'Current Errors,%': errRate, 'Req/s': rps })
+        })
       if (activeRunners.length > 0) {
         console.table(tableData)
       }
