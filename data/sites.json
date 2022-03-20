@@ -1,4 +1,5 @@
 [
+  { "page": "https://bueso.de", "max_concurrency": 5 },
   { "page": "https://bueso.de/aktiv", "max_concurrency": 5 },
   { "page": "https://bueso.de/partei", "max_concurrency": 5 },
   { "page": "https://bueso.de/videos", "max_concurrency": 5 },
@@ -7,11 +8,6 @@
   { "page": "https://bueso.de/kontaktieren-uns", "max_concurrency": 5 },
   { "page": "https://bueso.de/datenschutzerklaerung", "max_concurrency": 5 },
   { "page": "https://bueso.de/stoppt-gruenen-feudalismus", "max_concurrency": 5 },
-  { "page": "https://bueso.de/suchen?search_api_views_fulltext=war", "max_concurrency": 5 },
-  { "page": "https://bueso.de/suchen?search_api_views_fulltext=law", "max_concurrency": 5 },
-  { "page": "https://bueso.de/suchen?search_api_views_fulltext=news", "max_concurrency": 5 },
-  { "page": "https://bueso.de/suchen?search_api_views_fulltext=dutch", "max_concurrency": 5 },
-  { "page": "https://bueso.de/suchen?search_api_views_fulltext=ukraine", "max_concurrency": 5 },
   { "page": "https://bueso.de/raus-nato-fuer-neue-sicherheitsarchitektur", "max_concurrency": 5 },
   { "page": "https://bueso.de/weltweiter-wirtschaftskollaps-droht-neuer-westfaelischer-frieden-letzte-chance", "max_concurrency": 5 },
   { "page": "https://bueso.de/praesident-putin-sagt-scheitern-wirtschaftlichem-blitzkrieg-gegen-russland-voraus", "max_concurrency": 5 },
