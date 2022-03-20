@@ -22,7 +22,7 @@ const runner = async (url, eventEmitter) => {
     console.log('Invalid value for URL', url)
     return
   }
-  const printUrl = url.length > 63 ? url.substring(0, 63) + '...' : url
+  const printUrl = url.length > 55 ? url.substring(0, 55) + '...' : url
 
   let concurrentReqs = 5
   console.log('Starting process for', printUrl)

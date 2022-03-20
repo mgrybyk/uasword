@@ -78,7 +78,7 @@ const statsLogger = (eventEmitter) => {
       activeRunners
         .sort((a, b) => b.rps - a.rps)
         .forEach(({ url, total_reqs, errRate, rps }) => {
-          tableData.push({ url, Requests: total_reqs, 'Current Errors,%': errRate, 'Req/s': rps })
+          tableData.push({ url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
         })
       if (activeRunners.length > 0) {
         console.table(tableData)
