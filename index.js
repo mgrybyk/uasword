@@ -1,4 +1,4 @@
-const { main } = require('./main')
+const { main, statistics } = require('./main')
 
 main()
 
@@ -8,6 +8,7 @@ if (process.env.PORT) {
   const app = express()
 
   app.get('/', (req, res) => res.send('ok'))
+  app.get('/stats', (req, res) => res.send(statistics))
 
   app.listen(process.env.PORT)
 }

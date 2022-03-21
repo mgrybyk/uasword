@@ -8,7 +8,10 @@
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Program",
-      "env": { "SKIP_SHIELD_LISTS": "true" },
+      "env": {
+        "SKIP_SHIELD_LISTS": "true",
+        // "PORT": "3000"
+      },
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/index.js"
     }

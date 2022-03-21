@@ -9,9 +9,11 @@ const { runner, updateMaxConcurrentRequestsPerSite } = require('./runner')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
-const logInterval = 60 * 1000
+const logInterval = 10 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const configUrl = 'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/config.json'
+
+const statistics = {}
 
 const main = async () => {
   await runBrowser()
@@ -71,23 +73,29 @@ const statsLogger = (eventEmitter) => {
     stats.length = 0
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
-      const activeRunners = stats.filter(({ isActive }) => isActive)
-      updateMaxConcurrentRequestsPerSite(activeRunners.length)
-      const totalRps = activeRunners.reduce((prev, { rps }) => prev + rps, 0)
+      statistics.activeRunners = stats.filter(({ isActive }) => isActive)
+      updateMaxConcurrentRequestsPerSite(statistics.activeRunners.length)
+      const totalRps = statistics.activeRunners.reduce((prev, { rps }) => prev + rps, 0)
+      statistics.total = {
+        totalRequests,
+        totalRps,
+        activeRunners: statistics.activeRunners.length,
+        totalRunners: stats.length,
+      }
       const tableData = []
-      activeRunners
+      statistics.activeRunners
         .sort((a, b) => b.rps - a.rps)
         .forEach(({ url, total_reqs, errRate, rps }) => {
           tableData.push({ url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
         })
-      if (activeRunners.length > 0) {
+      if (statistics.activeRunners.length > 0) {
         console.table(tableData)
       }
       console.log(
         'Total Requests',
         totalRequests,
         '| Active runners',
-        activeRunners.length,
+        statistics.activeRunners.length,
         'of',
         stats.length,
         '| Total rps',
@@ -163,4 +171,4 @@ const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false
   return urlList
 }
 
-module.exports = { main }
+module.exports = { main, statistics }
