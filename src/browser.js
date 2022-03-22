@@ -25,7 +25,7 @@ const runBrowser = async () => {
     browser = await chromium.launch()
     console.log('Max browser contexts', MAX_BROWSER_CONTEXTS)
   } catch {
-    console.log('WARN: Unable to use real browser to overcome antiddos protection.')
+    console.log('WARN: Unable to use real browser to overcome protection.')
     browser = null
   }
 }

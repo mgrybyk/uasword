@@ -3,7 +3,7 @@
     {
       "enabled": true,
       "name": "UASWORD",
-      "url": "https://raw.githubusercontent.com/mgrybyk/uasword/master/data/sites.json",
+      "url": "https://raw.githubusercontent.com/xlenz/sites/master/data/sites.json",
       "type": "object"
     },
     {
