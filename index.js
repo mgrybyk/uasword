@@ -1,4 +1,4 @@
-const { main, statistics } = require('./main')
+const { main, statistics } = require('./src/main')
 
 main()
 

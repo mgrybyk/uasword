@@ -5,6 +5,6 @@ COPY . ./
 
 ENV IS_DOCKER=true
 
-RUN npm install
+RUN npm install --omit dev --no-fund --no-audit
 
 CMD ["node", "index"]
