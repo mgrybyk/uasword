@@ -1,5 +1,7 @@
 # uasword 
 
+[![Test](https://github.com/mgrybyk/uasword/actions/workflows/test.yml/badge.svg)](https://github.com/mgrybyk/uasword/actions/workflows/test.yml)
+
 > Optimised headless version of https://github.com/opengs/uashield
 
 See also https://help-ukraine-win.super.site/
