@@ -17,7 +17,7 @@ const ignoredErrCode = 'ECONNABORTED'
  * @param {string} url
  * @param {EventEmitter} eventEmitter
  */
-const runner = async (url, eventEmitter) => {
+const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, eventEmitter) => {
   if (typeof url !== 'string' || url.length < 10 || !url.startsWith('http')) {
     console.log('Invalid value for URL', url)
     return
@@ -27,7 +27,7 @@ const runner = async (url, eventEmitter) => {
   let concurrentReqs = 5
   console.log('Starting process for', printUrl)
 
-  let cookies = await pw(url)
+  let cookies = await pw(url, headersOverride)
   const client = spawnClientInstance(url)
 
   let isRunning = true
@@ -51,7 +51,7 @@ const runner = async (url, eventEmitter) => {
   // update cookies every 10 minutes
   const updateCookiesFn = async () => {
     if (isActive && isRunning) {
-      cookies = await pw(url)
+      cookies = await pw(url, headersOverride)
     }
   }
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
@@ -96,7 +96,7 @@ const runner = async (url, eventEmitter) => {
         concurrentReqs = 5
         isActive = false
         await sleep(nextDelay)
-        cookies = await pw(url)
+        cookies = await pw(url, headersOverride)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
@@ -107,10 +107,11 @@ const runner = async (url, eventEmitter) => {
     } else if (pending < concurrentReqs) {
       pending++
 
-      client
-        .get('', {
-          headers: generateRequestHeaders(cookies),
-        })
+      client('', {
+        method,
+        data,
+        headers: headersOverride || generateRequestHeaders(cookies),
+      })
         .then((res) => {
           if (res.status === 403) {
             lastMinuteErr++

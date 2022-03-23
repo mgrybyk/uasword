@@ -33,7 +33,10 @@ const runBrowser = async () => {
   }
 }
 
-const pw = async (baseURL) => {
+const pw = async (baseURL, skip) => {
+  if (skip) {
+    return
+  }
   if (!browser) {
     return null
   }
