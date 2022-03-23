@@ -9,7 +9,7 @@ const { runner, updateMaxConcurrentRequestsPerSite } = require('./runner')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
-const logInterval = 10 * 1000
+const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const configUrl = 'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/config.json'
 

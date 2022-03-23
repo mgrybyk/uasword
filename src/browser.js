@@ -13,10 +13,13 @@ const runBrowser = async () => {
     // try install browser to make update easier for existing users. Safe to remove in 2 weeks.
     if (!process.env.IS_DOCKER) {
       try {
-        const cli = require('playwright-core/lib/utils/registry')
-        const executables = [cli.registry.findExecutable('chromium')]
+        let cli = require('playwright-core/lib/utils/registry')
+        let executables = [cli.registry.findExecutable('chromium')]
         await cli.registry.installDeps(executables, false)
         await cli.registry.install(executables)
+        executables.length = 0
+        executables = null
+        cli = null
       } catch {
         console.log('Failed to install browser or deps')
       }
@@ -36,7 +39,7 @@ const pw = async (baseURL) => {
   }
 
   while (activeContexts >= MAX_BROWSER_CONTEXTS || os.freemem() < 524288000) {
-    await sleep(500)
+    await sleep(1000)
   }
   activeContexts++
 
@@ -44,16 +47,20 @@ const pw = async (baseURL) => {
   try {
     context = await browser.newContext({ baseURL })
     await abortBlocked(context)
-    const page = await context.newPage()
-    page.on('dialog', (dialog) => dialog.accept())
-    await page.goto('')
+    let page = await context.newPage()
+    const acceptDialog = (dialog) => dialog.accept()
+    page.once('dialog', acceptDialog)
+    await page.goto('', { timeout: 15000 })
     await sleep(5000)
     const storageState = await page.context().storageState()
-    const cookies = storageState.cookies.reduce((prev, { name, value }) => {
-      prev.push(`${name}=${value};`)
-      return prev
-    }, [])
-    return cookies.join(' ')
+    await page.close()
+    page = null
+    return storageState.cookies
+      .reduce((prev, { name, value }) => {
+        prev.push(`${name}=${value};`)
+        return prev
+      }, [])
+      .join(' ')
   } catch {
     return null
   } finally {
@@ -67,6 +74,9 @@ const pw = async (baseURL) => {
 const blacklist = [
   /.*\.jpg/,
   /.*\.jpeg/,
+  /.*\.svg/,
+  /.*\.ico/,
+  /.*\.json/,
   /.*\.png/,
   /.*\.woff/,
   /.*\.woff\?.*/,

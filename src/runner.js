@@ -5,7 +5,7 @@ const { pw } = require('./browser')
 
 // stop process is service is down within DELAY * ATTEMPTS (1 hour)
 const FAILURE_DELAY = 60 * 1000
-const ATTEMPTS = 60
+const ATTEMPTS = 15
 // concurrent requests adopts based on error rate, but won't exceed the max value
 let MAX_CONCURRENT_REQUESTS = 16
 
@@ -86,7 +86,8 @@ const runner = async (url, eventEmitter) => {
     if (concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
-      console.log(printUrl, 'is not reachable. Retrying in', FAILURE_DELAY, 'ms...')
+      const nextDelay = FAILURE_DELAY + ATTEMPTS * FAILURE_DELAY
+      console.log(printUrl, 'is not reachable. Retrying in', nextDelay, 'ms...')
       failureAttempts++
       // stop process
       if (failureAttempts >= ATTEMPTS) {
@@ -94,10 +95,8 @@ const runner = async (url, eventEmitter) => {
       } else {
         concurrentReqs = 5
         isActive = false
-        await sleep(FAILURE_DELAY)
-        if (failureAttempts < 2) {
-          cookies = await pw(url)
-        }
+        await sleep(nextDelay)
+        cookies = await pw(url)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
