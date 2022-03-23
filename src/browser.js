@@ -8,7 +8,7 @@ let activeContexts = 0
 
 const runBrowser = async () => {
   try {
-    const { chromium } = require('@playwright/test')
+    const { chromium } = require('playwright-core')
 
     // try install browser to make update easier for existing users. Safe to remove in 2 weeks.
     if (!process.env.IS_DOCKER) {

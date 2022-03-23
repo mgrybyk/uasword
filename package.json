@@ -19,9 +19,9 @@
     "npm": "~8"
   },
   "dependencies": {
-    "@playwright/test": "^1.20.0",
     "axios": "^0.26.1",
     "express": "^4.17.3",
+    "playwright-core": "^1.20.0",
     "user-agents": "^1.0.964"
   },
   "devDependencies": {
