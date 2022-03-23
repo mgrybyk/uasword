@@ -16,7 +16,7 @@
       "enabled": true,
       "name": "DDOSER",
       "url": "https://raw.githubusercontent.com/hem017/cytro/master/targets_all.txt",
-      "type": "string",
+      "type": "string"
     }
   ]
 }
