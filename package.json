@@ -22,7 +22,7 @@
     "@playwright/test": "^1.20.0",
     "axios": "^0.26.1",
     "express": "^4.17.3",
-    "user-agents": "^1.0.963"
+    "user-agents": "^1.0.964"
   },
   "devDependencies": {
     "eslint": "^8.11.0",
