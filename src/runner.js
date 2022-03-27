@@ -86,7 +86,7 @@ const runner = async (url, eventEmitter) => {
     if (concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
-      const nextDelay = FAILURE_DELAY + ATTEMPTS * FAILURE_DELAY
+      const nextDelay = FAILURE_DELAY + failureAttempts * FAILURE_DELAY
       console.log(printUrl, 'is not reachable. Retrying in', nextDelay, 'ms...')
       failureAttempts++
       // stop process
