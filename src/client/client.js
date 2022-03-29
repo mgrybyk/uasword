@@ -2,6 +2,21 @@
  * @type {import('axios').AxiosStatic}
  */
 const axios = require('axios')
+const { Resolver } = require('dns/promises')
+
+const { randomInt } = require('../helpers')
+
+const resolver = new Resolver()
+resolver.setServers(['1.1.1.1', '8.8.8.8'])
+
+const resolve4 = async (hostname, prevIp) => {
+  try {
+    const r = await resolver.resolve4(hostname)
+    return r[randomInt(r.length)] || prevIp
+  } catch {
+    return prevIp
+  }
+}
 
 const validateStatus = () => true
 
@@ -27,4 +42,4 @@ const spawnClientInstance = (baseURL) => {
   return client
 }
 
-module.exports = { spawnClientInstance }
+module.exports = { spawnClientInstance, resolve4 }

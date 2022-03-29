@@ -1,5 +1,5 @@
 const { sleep } = require('./helpers')
-const { spawnClientInstance } = require('./client/client')
+const { spawnClientInstance, resolve4 } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
 const { pw } = require('./browser')
 
@@ -28,6 +28,8 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   let concurrentReqs = 5
   console.log('Starting process for', printUrl, printIp)
 
+  const urlObject = new URL(url)
+  let newIp = ip || (await resolve4(urlObject.hostname))
   let cookies = await pw(url, useBrowser)
   const client = spawnClientInstance(url)
 
@@ -44,7 +46,7 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { url: printUrl, ip, total_reqs, new_reqs, errRate, rps, isActive })
+    eventEmitter.emit('RUNNER_STATS', { url: printUrl, ip: newIp, total_reqs, new_reqs, errRate, rps, isActive })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
@@ -84,7 +86,7 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
-    if (concurrentReqs < 3 || errRate > 95) {
+    if (newIp && (concurrentReqs < 3 || errRate > 95)) {
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
       const nextDelay = FAILURE_DELAY + failureAttempts * FAILURE_DELAY
@@ -97,6 +99,7 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
         concurrentReqs = 5
         isActive = false
         await sleep(nextDelay)
+        newIp = ip || (await resolve4(urlObject.hostname, newIp))
         cookies = await pw(url, useBrowser)
         isActive = true
         lastMinuteOk = 0
@@ -109,7 +112,7 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
       pending++
 
       client('', {
-        ip,
+        ip: newIp,
         headers: generateRequestHeaders(cookies),
       })
         .then((res) => {
