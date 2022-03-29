@@ -5,7 +5,8 @@ const axios = require('axios')
 const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
-const { runner, updateMaxConcurrentRequestsPerSite } = require('./runner')
+const { runner } = require('./runner')
+const { runnerDns } = require('./runner-dns')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
@@ -50,12 +51,18 @@ const siteListUpdater = (eventEmitter, urlList) => {
 
 /**
  * @param {EventEmitter} eventEmitter
- * @param {string[]} urlList
+ * @param {Array<{method:'get'|'dns';}>} urlList
  */
 const run = async (eventEmitter, urlList) => {
   for (let i = 0; i < urlList.length; i++) {
     await sleep(1000)
-    runner(urlList[i], eventEmitter)
+    if (urlList[i].method === 'get') {
+      runner(urlList[i], eventEmitter)
+    } else if (urlList[i].method === 'dns') {
+      runnerDns(urlList[i], eventEmitter)
+    } else {
+      console.log('skipping runner', urlList[i])
+    }
   }
 }
 
@@ -64,44 +71,73 @@ const run = async (eventEmitter, urlList) => {
  */
 const statsLogger = (eventEmitter) => {
   let stats = []
-  let totalRequests = 0
+  let totalDnsRequests = 0
+  let totalHttpRequests = 0
 
   eventEmitter.on('RUNNER_STATS', (s) => {
     stats.push(s)
-    totalRequests += s.new_reqs
+    if (s.type === 'http') {
+      totalHttpRequests += s.new_reqs
+    } else if (s.type === 'dns') {
+      totalDnsRequests += s.new_reqs
+    }
   })
 
   setInterval(() => {
     stats.length = 0
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
-      statistics.activeRunners = stats.filter(({ isActive }) => isActive)
-      updateMaxConcurrentRequestsPerSite(statistics.activeRunners.length)
-      const totalRps = statistics.activeRunners.reduce((prev, { rps }) => prev + rps, 0)
+      statistics.activeRunners = stats.filter(({ isActive, rps }) => isActive && rps > 0)
+      statistics.slowRunners = stats.filter(({ isActive, rps }) => isActive && rps === 0)
+
+      const totalHttpRps = statistics.activeRunners
+        .filter(({ type }) => type === 'http')
+        .reduce((prev, { rps }) => prev + rps, 0)
+      const totalDnsRps = statistics.activeRunners
+        .filter(({ type }) => type === 'dns')
+        .reduce((prev, { rps }) => prev + rps, 0)
+
       statistics.total = {
-        totalRequests,
-        totalRps,
+        totalHttpRequests,
+        totalDnsRequests,
+        totalHttpRps,
+        totalDnsRps,
         activeRunners: statistics.activeRunners.length,
+        slowRunners: statistics.slowRunners.length,
         totalRunners: stats.length,
       }
-      const tableData = []
-      statistics.activeRunners
-        .sort((a, b) => b.rps - a.rps)
-        .forEach(({ url, ip, total_reqs, errRate, rps }) => {
-          tableData.push({ ip: ip || '-', url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
-        })
+
       if (statistics.activeRunners.length > 0) {
+        const tableData = []
+        statistics.activeRunners.sort((a, b) => b.rps - a.rps)
+
+        statistics.activeRunners
+          .filter(({ type }) => type === 'http')
+          .forEach(({ url, ip, total_reqs, errRate, rps }) => {
+            tableData.push({ ip: ip || '-', url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
+          })
+
+        statistics.activeRunners
+          .filter(({ type }) => type === 'dns')
+          .forEach(({ host, port, total_reqs, errRate, rps }) => {
+            tableData.push({
+              ip: `${host}:${port}`,
+              url: 'N/A',
+              Requests: total_reqs,
+              'Errors,%': errRate,
+              'Req/s': rps,
+            })
+          })
+
         console.table(tableData)
       }
+
       console.log(
-        'Total Requests',
-        totalRequests,
-        '| Active runners',
-        statistics.activeRunners.length,
-        'of',
-        stats.length,
-        '| Total rps',
-        totalRps,
+        `http reqs: ${totalHttpRequests}, rps: ${totalHttpRps}`,
+        '|',
+        `dns reqs: ${totalDnsRequests}, rps: ${totalDnsRps}`,
+        '| Runners (active/slow/total)',
+        `${statistics.total.activeRunners}/${statistics.total.slowRunners}/${statistics.total.totalRunners}`,
         '\n'
       )
     }, 1000)
@@ -138,15 +174,8 @@ const getSites = async ({ ignoreError = false } = {}) => {
   urlList.push(
     ...(await getSitesFn(
       sitesUrls.object,
-      (d) => !Array.isArray(d) || (d.length > 0 && typeof d[0].page !== 'string'),
-      (d) =>
-        d
-          .filter((x) => x.method === 'get')
-          .map((x) => ({
-            url: x.page,
-            ip: x.ip,
-            useBrowser: x.useBrowser,
-          })),
+      (d) => !Array.isArray(d) || (d.length > 0 && typeof d[0] !== 'object'),
+      (d) => d.filter((x) => x.method === 'get' || x.method === 'dns'),
       { ignoreError }
     ))
   )
@@ -160,7 +189,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
         d
           .split('\n')
           .filter((s) => s.startsWith('http'))
-          .map((url) => ({ url })),
+          .map((page) => ({ page, method: 'get' })),
       { ignoreError: true }
     ))
   )
@@ -173,7 +202,11 @@ const getSites = async ({ ignoreError = false } = {}) => {
       (d) =>
         d.jobs
           .filter(({ type, args }) => type === 'http' && args.request.method === 'GET')
-          .map(({ args }) => ({ url: args.request.path, ip: args.client?.static_host?.addr.split(':')[0] })),
+          .map(({ args }) => ({
+            method: 'get',
+            url: args.request.path,
+            ip: args.client?.static_host?.addr.split(':')[0],
+          })),
       { ignoreError: true }
     ))
   )

@@ -3,21 +3,24 @@ const { spawnClientInstance, resolve4 } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
 const { pw } = require('./browser')
 
-// stop process is service is down within DELAY * ATTEMPTS (1 hour)
 const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 15
 // concurrent requests adopts based on error rate, but won't exceed the max value
-let MAX_CONCURRENT_REQUESTS = 16
+const MAX_CONCURRENT_REQUESTS = 256
 
 const UPDATE_COOKIES_INTERVAL = 10 * 60 * 1000
 
 const ignoredErrCode = 'ECONNABORTED'
 
 /**
- * @param {string} url
+ * @param {Object} opts
+ * @param {string} opts.page url
+ * @param {string=} [opts.ip] static ip address
+ * @param {boolean=} [opts.useBrowser] run real browser to get cookies
  * @param {EventEmitter} eventEmitter
+ * @return {Promise<void>}
  */
-const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
+const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   if (typeof url !== 'string' || url.length < 10 || !url.startsWith('http')) {
     console.log('Invalid value for URL', url)
     return
@@ -46,7 +49,16 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { url: printUrl, ip: newIp, total_reqs, new_reqs, errRate, rps, isActive })
+    eventEmitter.emit('RUNNER_STATS', {
+      type: 'http',
+      url: printUrl,
+      ip: newIp,
+      total_reqs,
+      new_reqs,
+      errRate,
+      rps,
+      isActive,
+    })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
@@ -66,14 +78,14 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
       lastMinuteOk = 0
       lastMinuteErr = 0
 
-      if (errRate > 40) {
+      if (errRate > 20) {
         concurrentReqs = Math.floor(rps * 0.6)
-      } else if (errRate > 15) {
+      } else if (errRate > 10) {
         concurrentReqs = Math.floor(rps * 0.8)
       } else if (errRate > 5) {
         concurrentReqs = Math.floor(rps * 0.9)
-      } else if (errRate < 2) {
-        concurrentReqs = Math.min(Math.floor((rps + 4) * 1.05), MAX_CONCURRENT_REQUESTS)
+      } else if (errRate < 1) {
+        concurrentReqs = Math.min(rps + 3, MAX_CONCURRENT_REQUESTS)
       }
     }
   }
@@ -89,7 +101,7 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
     if (newIp && (concurrentReqs < 3 || errRate > 95)) {
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
-      const nextDelay = FAILURE_DELAY + failureAttempts * FAILURE_DELAY
+      const nextDelay = FAILURE_DELAY + failureAttempts * (FAILURE_DELAY / 2)
       console.log(printUrl, printIp, 'is not reachable. Retrying in', nextDelay, 'ms...')
       failureAttempts++
       // stop process
@@ -145,14 +157,4 @@ const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   console.log('Stopping runner for:', printUrl, printIp)
 }
 
-const updateMaxConcurrentRequestsPerSite = (activeRunners) => {
-  if (activeRunners < 3) {
-    MAX_CONCURRENT_REQUESTS = 256
-  } else if (activeRunners < 5) {
-    MAX_CONCURRENT_REQUESTS = 128
-  } else {
-    MAX_CONCURRENT_REQUESTS = 64
-  }
-}
-
-module.exports = { runner, updateMaxConcurrentRequestsPerSite }
+module.exports = { runner }
