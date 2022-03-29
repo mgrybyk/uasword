@@ -20,6 +20,12 @@ test('config', () => {
         url: expect.stringMatching(/^https:\/\//),
         type: 'string',
       },
+      {
+        enabled: expect.any(Boolean),
+        name: 'DB1000N',
+        url: expect.stringMatching(/^https:\/\//),
+        type: 'db1000n_v0.7',
+      },
     ],
   })
 })
