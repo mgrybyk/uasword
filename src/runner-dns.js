@@ -9,7 +9,7 @@ const ATTEMPTS = 15
 
 // wait 1ms if concurrent requests limit is reached
 const REQ_DELAY = 1
-const MAX_CONCURRENT_REQUESTS = 1000
+let MAX_CONCURRENT_REQUESTS = 100
 
 /**
  * @param {Object} opts
@@ -29,7 +29,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
   const resolver = new Resolver({ timeout: 6000, tries: 1 })
   resolver.setServers([host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`])
 
-  let concurrentReqs = 100
+  let concurrentReqs = MAX_CONCURRENT_REQUESTS
   let isRunning = true
   let isActive = true
   let pending = 0
@@ -66,7 +66,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
     } else if (errRate > 9) {
       concurrentReqs = Math.floor(rps * 0.9)
     } else if (errRate < 2) {
-      concurrentReqs = Math.min(Math.floor(rps * 1.05), MAX_CONCURRENT_REQUESTS)
+      concurrentReqs = Math.min(rps + 5, MAX_CONCURRENT_REQUESTS)
     }
 
     if (concurrentReqs === 0) {
@@ -102,7 +102,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
       if (failureAttempts >= ATTEMPTS) {
         isRunning = false
       } else {
-        concurrentReqs = 50
+        concurrentReqs = Math.floor(MAX_CONCURRENT_REQUESTS / 4)
         isActive = false
         await sleep(nextDelay)
         isActive = true
@@ -130,4 +130,8 @@ const getNextHostname = () => {
   return hostnames[idx]
 }
 
-module.exports = { runnerDns }
+const setMaxDnsReqs = (maxReqs) => {
+  MAX_CONCURRENT_REQUESTS = maxReqs
+}
+
+module.exports = { runnerDns, setMaxDnsReqs }

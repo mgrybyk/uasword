@@ -6,13 +6,15 @@ const { EventEmitter } = require('events')
 
 const { sleep } = require('./helpers')
 const { runner } = require('./runner')
-const { runnerDns } = require('./runner-dns')
+const { runnerDns, setMaxDnsReqs } = require('./runner-dns')
 const { runBrowser } = require('./browser')
 
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const configUrl = 'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/config.json'
+
+const maxConcurrentUdpRequests = 800
 
 const db1000n = 'db1000n_v0.7'
 
@@ -54,6 +56,9 @@ const siteListUpdater = (eventEmitter, urlList) => {
  * @param {Array<{method:'get'|'dns';}>} urlList
  */
 const run = async (eventEmitter, urlList) => {
+  const dnsRunners = urlList.filter((x) => x.method === 'dns').length || 1
+  setMaxDnsReqs(Math.floor(maxConcurrentUdpRequests / dnsRunners))
+
   for (let i = 0; i < urlList.length; i++) {
     await sleep(1000)
     if (urlList[i].method === 'get') {
@@ -204,7 +209,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
           .filter(({ type, args }) => type === 'http' && args.request.method === 'GET')
           .map(({ args }) => ({
             method: 'get',
-            url: args.request.path,
+            page: args.request.path,
             ip: args.client?.static_host?.addr.split(':')[0],
           })),
       { ignoreError: true }
