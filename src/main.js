@@ -127,7 +127,7 @@ const statsLogger = (eventEmitter) => {
           .forEach(({ host, port, total_reqs, errRate, rps }) => {
             tableData.push({
               ip: `${host}:${port}`,
-              url: 'N/A',
+              url: 'N/A (dns)',
               Requests: total_reqs,
               'Errors,%': errRate,
               'Req/s': rps,
