@@ -33,8 +33,8 @@ const runBrowser = async () => {
   }
 }
 
-const pw = async (baseURL, skip) => {
-  if (skip) {
+const pw = async (baseURL, useBrowser) => {
+  if (!useBrowser) {
     return
   }
   if (!browser) {

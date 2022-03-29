@@ -17,17 +17,18 @@ const ignoredErrCode = 'ECONNABORTED'
  * @param {string} url
  * @param {EventEmitter} eventEmitter
  */
-const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, eventEmitter) => {
+const runner = async ({ url, ip, useBrowser } = {}, eventEmitter) => {
   if (typeof url !== 'string' || url.length < 10 || !url.startsWith('http')) {
     console.log('Invalid value for URL', url)
     return
   }
-  const printUrl = url.length > 55 ? url.substring(0, 55) + '...' : url
+  const printUrl = url.length > 37 ? url.substring(0, 38) + '...' : url
+  const printIp = ip ? `[${ip}]` : ''
 
   let concurrentReqs = 5
-  console.log('Starting process for', printUrl)
+  console.log('Starting process for', printUrl, printIp)
 
-  let cookies = await pw(url, headersOverride)
+  let cookies = await pw(url, useBrowser)
   const client = spawnClientInstance(url)
 
   let isRunning = true
@@ -43,7 +44,7 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
   let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { url: printUrl, total_reqs, new_reqs, errRate, rps, isActive })
+    eventEmitter.emit('RUNNER_STATS', { url: printUrl, ip, total_reqs, new_reqs, errRate, rps, isActive })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
@@ -51,7 +52,7 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
   // update cookies every 10 minutes
   const updateCookiesFn = async () => {
     if (isActive && isRunning) {
-      cookies = await pw(url, headersOverride)
+      cookies = await pw(url, useBrowser)
     }
   }
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
@@ -87,7 +88,7 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
       const nextDelay = FAILURE_DELAY + failureAttempts * FAILURE_DELAY
-      console.log(printUrl, 'is not reachable. Retrying in', nextDelay, 'ms...')
+      console.log(printUrl, printIp, 'is not reachable. Retrying in', nextDelay, 'ms...')
       failureAttempts++
       // stop process
       if (failureAttempts >= ATTEMPTS) {
@@ -96,7 +97,7 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
         concurrentReqs = 5
         isActive = false
         await sleep(nextDelay)
-        cookies = await pw(url, headersOverride)
+        cookies = await pw(url, useBrowser)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
@@ -108,9 +109,8 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
       pending++
 
       client('', {
-        method,
-        data,
-        headers: headersOverride || generateRequestHeaders(cookies),
+        ip,
+        headers: generateRequestHeaders(cookies),
       })
         .then((res) => {
           if (res.status === 403) {
@@ -139,7 +139,7 @@ const runner = async ({ url, data, headersOverride, method = 'GET' } = {}, event
   clearInterval(adaptInterval)
   eventEmitter.off('GET_STATS', getStatsFn)
   eventEmitter.off('RUNNER_STOP', stopEventFn)
-  console.log('Stopping runner for:', printUrl)
+  console.log('Stopping runner for:', printUrl, printIp)
 }
 
 const updateMaxConcurrentRequestsPerSite = (activeRunners) => {

@@ -9,7 +9,7 @@
     {
       "enabled": true,
       "name": "SHIELD",
-      "url": "https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json",
+      "url": "https://raw.githubusercontent.com/opengs/uashieldtargets/master/sites.json",
       "type": "object"
     },
     {
@@ -19,7 +19,7 @@
       "type": "string"
     },
     {
-      "enabled": false,
+      "enabled": true,
       "name": "DB1000N",
       "url": "https://raw.githubusercontent.com/db1000n-coordinators/LoadTestConfig/main/config.v0.7.json",
       "type": "db1000n_v0.7"

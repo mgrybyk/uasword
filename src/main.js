@@ -87,8 +87,8 @@ const statsLogger = (eventEmitter) => {
       const tableData = []
       statistics.activeRunners
         .sort((a, b) => b.rps - a.rps)
-        .forEach(({ url, total_reqs, errRate, rps }) => {
-          tableData.push({ url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
+        .forEach(({ url, ip, total_reqs, errRate, rps }) => {
+          tableData.push({ ip: ip || '-', url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
         })
       if (statistics.activeRunners.length > 0) {
         console.table(tableData)
@@ -140,9 +140,13 @@ const getSites = async ({ ignoreError = false } = {}) => {
       sitesUrls.object,
       (d) => !Array.isArray(d) || (d.length > 0 && typeof d[0].page !== 'string'),
       (d) =>
-        d.map((x) => ({
-          url: x.page,
-        })),
+        d
+          .filter((x) => x.method === 'get')
+          .map((x) => ({
+            url: x.page,
+            ip: x.ip,
+            useBrowser: x.useBrowser,
+          })),
       { ignoreError }
     ))
   )
@@ -169,12 +173,12 @@ const getSites = async ({ ignoreError = false } = {}) => {
       (d) =>
         d.jobs
           .filter(({ type, args }) => type === 'http' && args.request.method === 'GET')
-          .map(({ args }) => ({ url: args.request.path })),
+          .map(({ args }) => ({ url: args.request.path, ip: args.client?.static_host?.addr.split(':')[0] })),
       { ignoreError: true }
     ))
   )
 
-  return [...new Set(urlList)]
+  return urlList
 }
 
 const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false } = {}) => {
