@@ -28,7 +28,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   const printUrl = url.length > 37 ? url.substring(0, 38) + '...' : url
   const printIp = ip ? `[${ip}]` : ''
 
-  let concurrentReqs = 5
+  let concurrentReqs = 9
   console.log('Starting process for', printUrl, printIp)
 
   const urlObject = new URL(url)
@@ -79,13 +79,13 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
       lastMinuteErr = 0
 
       if (errRate > 20) {
-        concurrentReqs = Math.floor(rps * 0.6)
+        concurrentReqs = Math.floor(concurrentReqs * 0.6)
       } else if (errRate > 10) {
-        concurrentReqs = Math.floor(rps * 0.8)
+        concurrentReqs = Math.floor(concurrentReqs * 0.8)
       } else if (errRate > 5) {
-        concurrentReqs = Math.floor(rps * 0.9)
+        concurrentReqs = Math.floor(concurrentReqs * 0.9)
       } else if (errRate < 1) {
-        concurrentReqs = Math.min(rps + 3, MAX_CONCURRENT_REQUESTS)
+        concurrentReqs = Math.min(concurrentReqs + 3, MAX_CONCURRENT_REQUESTS)
       }
     }
   }
@@ -98,7 +98,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
   while (isRunning) {
-    if (newIp && (concurrentReqs < 3 || errRate > 95)) {
+    if (!newIp || concurrentReqs < 3 || errRate > 95) {
       clearInterval(adaptInterval)
       clearInterval(updateCookiesInterval)
       const nextDelay = FAILURE_DELAY + failureAttempts * (FAILURE_DELAY / 2)
