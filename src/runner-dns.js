@@ -55,22 +55,20 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
 
   const adaptivenessInterval = 10
   const adaptIntervalFn = () => {
-    rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
-    lastMinuteOk = 0
-    lastMinuteErr = 0
+    if (failureAttempts === 0) {
+      rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
+      lastMinuteOk = 0
+      lastMinuteErr = 0
 
-    if (errRate > 50) {
-      concurrentReqs = Math.floor(rps * 0.5)
-    } else if (errRate > 20) {
-      concurrentReqs = Math.floor(rps * 0.8)
-    } else if (errRate > 9) {
-      concurrentReqs = Math.floor(rps * 0.9)
-    } else if (errRate < 2) {
-      concurrentReqs = Math.min(rps + 5, MAX_CONCURRENT_REQUESTS)
-    }
-
-    if (concurrentReqs === 0) {
-      isActive = false
+      if (errRate > 20) {
+        concurrentReqs = Math.floor(rps * 0.6)
+      } else if (errRate > 10) {
+        concurrentReqs = Math.floor(rps * 0.8)
+      } else if (errRate > 5) {
+        concurrentReqs = Math.floor(rps * 0.9)
+      } else if (errRate < 2) {
+        concurrentReqs = Math.min(rps + 5, MAX_CONCURRENT_REQUESTS)
+      }
     }
   }
   let adaptInterval = setInterval(adaptIntervalFn, adaptivenessInterval * 1000)
@@ -80,12 +78,10 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
       pending++
       resolver
         .resolve(getNextHostname())
-        .then((d) => {
-          d
+        .then(() => {
           lastMinuteOk++
         })
-        .catch((err) => {
-          err
+        .catch(() => {
           lastMinuteErr++
         })
         .finally(() => {
@@ -94,7 +90,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
           new_reqs++
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
-    } else if (!isActive) {
+    } else if (concurrentReqs === 0 || errRate > 95) {
       clearInterval(adaptInterval)
       const nextDelay = FAILURE_DELAY + failureAttempts * FAILURE_DELAY
       console.log(host, port, 'is not reachable. Retrying in', nextDelay, 'ms...')
