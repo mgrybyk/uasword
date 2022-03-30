@@ -13,7 +13,7 @@ const run = async (eventEmitter, urlList) => {
   setMaxDnsReqs(Math.floor(maxConcurrentUdpRequests / dnsRunners))
 
   for (let i = 0; i < urlList.length; i++) {
-    await sleep(1000)
+    await sleep(500)
     if (urlList[i].method === 'get') {
       runner(urlList[i], eventEmitter)
     } else if (urlList[i].method === 'dns') {

@@ -86,4 +86,4 @@ const statsLogger = (eventEmitter) => {
   }, logInterval)
 }
 
-module.exports = { statsLogger, statistics }
+module.exports = { statsLogger, statistics, logInterval }
