@@ -29,3 +29,8 @@ test('config', () => {
     ],
   })
 })
+
+test('dns hostnames', () => {
+  const hostnames = require('../data/dns_hostnames.json')
+  hostnames.forEach((s) => expect(typeof s).toEqual('string'))
+})
