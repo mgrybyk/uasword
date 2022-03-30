@@ -1,7 +1,7 @@
 const { sleep } = require('./helpers')
 const { spawnClientInstance, resolve4 } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
-const { pw } = require('./browser')
+const { getRealBrowserHeaders } = require('./browser')
 
 const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 15
@@ -33,7 +33,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
 
   const urlObject = new URL(url)
   let newIp = ip || (await resolve4(urlObject.hostname))
-  let cookies = await pw(url, useBrowser)
+  let browserHeaders = await getRealBrowserHeaders(url, useBrowser)
   const client = spawnClientInstance(url)
 
   let isRunning = true
@@ -66,7 +66,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   // update cookies every 10 minutes
   const updateCookiesFn = async () => {
     if (isActive && isRunning) {
-      cookies = await pw(url, useBrowser)
+      browserHeaders = await getRealBrowserHeaders(url, useBrowser)
     }
   }
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
@@ -112,7 +112,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
         isActive = false
         await sleep(nextDelay)
         newIp = ip || (await resolve4(urlObject.hostname, newIp))
-        cookies = await pw(url, useBrowser)
+        browserHeaders = await getRealBrowserHeaders(url, useBrowser)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0
@@ -125,7 +125,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
 
       client('', {
         ip: newIp,
-        headers: generateRequestHeaders(cookies),
+        headers: browserHeaders || generateRequestHeaders(),
       })
         .then((res) => {
           if (res.status === 403) {

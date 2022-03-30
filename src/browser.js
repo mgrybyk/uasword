@@ -33,7 +33,13 @@ const runBrowser = async () => {
   }
 }
 
-const pw = async (baseURL, useBrowser) => {
+/**
+ * try get real browser headers to use in attacks to overcome ddos protection
+ * @param {string} baseURL
+ * @param {boolean=} useBrowser
+ * @returns {Promise<Record<string,string>>}
+ */
+const getRealBrowserHeaders = async (baseURL, useBrowser) => {
   if (!useBrowser) {
     return
   }
@@ -52,18 +58,15 @@ const pw = async (baseURL, useBrowser) => {
     await abortBlocked(context)
     let page = await context.newPage()
     const acceptDialog = (dialog) => dialog.accept()
-    page.once('dialog', acceptDialog)
+    page.on('dialog', acceptDialog)
     await page.goto('', { timeout: 15000 })
     await sleep(5000)
-    const storageState = await page.context().storageState()
+    const [req] = await Promise.all([page.waitForRequest(baseURL), page.reload({ timeout: 10000 })])
+    const headers = await req.allHeaders()
+    page.off('dialog', acceptDialog)
     await page.close()
     page = null
-    return storageState.cookies
-      .reduce((prev, { name, value }) => {
-        prev.push(`${name}=${value};`)
-        return prev
-      }, [])
-      .join(' ')
+    return headers
   } catch {
     return null
   } finally {
@@ -109,4 +112,4 @@ const abortBlocked = async (ctx) => {
   }
 }
 
-module.exports = { runBrowser, pw }
+module.exports = { runBrowser, getRealBrowserHeaders }

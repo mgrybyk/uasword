@@ -35,15 +35,12 @@ const secHeaders = {
   'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="98", "Google Chrome";v="98"',
 }
 
-const generateRequestHeaders = (cookies) => {
+const generateRequestHeaders = () => {
   const headers = getAdditionalRandomHeaders()
 
   headers[headersMap.UA] = new UserAgent().toString()
   headers[headersMap.AcceptLanguage] = acceptLanguages[randomInt(acceptLanguages.length)]
   headers[headersMap.Accept] = accept
-  if (cookies) {
-    headers[headersMap.Cookie] = cookies
-  }
 
   return headers
 }
