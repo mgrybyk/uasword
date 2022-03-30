@@ -122,17 +122,20 @@ const statsLogger = (eventEmitter) => {
             tableData.push({ ip: ip || '-', url, Requests: total_reqs, 'Errors,%': errRate, 'Req/s': rps })
           })
 
-        statistics.activeRunners
-          .filter(({ type }) => type === 'dns')
-          .forEach(({ host, port, total_reqs, errRate, rps }) => {
-            tableData.push({
-              ip: `${host}:${port}`,
-              url: 'N/A (dns)',
-              Requests: total_reqs,
-              'Errors,%': errRate,
-              'Req/s': rps,
-            })
+        const activeDnsRunners = statistics.activeRunners.filter(({ type }) => type === 'dns')
+        activeDnsRunners.forEach(({ host, port, total_reqs, errRate, rps }) => {
+          tableData.push({
+            ip: `${host}:${port}`,
+            url: 'N/A (dns)',
+            Requests: total_reqs,
+            'Errors,%': errRate,
+            'Req/s': rps,
           })
+        })
+
+        if (activeDnsRunners.length > 0) {
+          setMaxDnsReqs(Math.floor(maxConcurrentUdpRequests / activeDnsRunners.length))
+        }
 
         console.table(tableData)
       }
