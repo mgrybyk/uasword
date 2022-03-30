@@ -14,7 +14,7 @@ const logInterval = 60 * 1000
 const urlsPoolInterval = 15 * 60 * 1000
 const configUrl = 'https://raw.githubusercontent.com/mgrybyk/uasword/master/data/config.json'
 
-const maxConcurrentUdpRequests = 500
+const maxConcurrentUdpRequests = 400
 
 const db1000n = 'db1000n_v0.7'
 
