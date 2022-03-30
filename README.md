@@ -17,7 +17,7 @@ See also https://help-ukraine-win.super.site/
 
 ## Targets
 
-The list of targets is provided by [uashield](https://github.com/opengs/uashield), see the [sites.json](https://raw.githubusercontent.com/opengs/uashieldtargets/v2/sites.json)
+Several target lists is used, see [data/config.json](https://github.com/mgrybyk/uasword/blob/master/data/config.json). As for now uashield and db1000n lists are enabled.
 
 ## Docker
 
