@@ -4,7 +4,7 @@
 
 > Multitarget DDoS tool based on [uashield](https://github.com/opengs/uashield) and [db1000n](https://github.com/Arriven/db1000n) lists.
 
-![stats](docs/image.png)
+![stats](docs/stats.png)
 - attacks multiple targets in parallel
 - DNS flood
 - uses browser to overcome any antiddos protection (real browser detection)

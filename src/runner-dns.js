@@ -15,11 +15,12 @@ let MAX_CONCURRENT_REQUESTS = 100
  * @param {Object} opts
  * @param {string} opts.host dns host (ip address)
  * @param {number=53} [opts.port] dns port
+ * @param {Array<string>} [opts.targets] resolve hostnames from targets list
  * @param {EventEmitter} eventEmitter
  * @return {Promise<void>}
  */
-const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
-  if (typeof host !== 'string' || typeof port !== 'number') {
+const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmitter) => {
+  if (typeof host !== 'string' || typeof port !== 'number' || !Array.isArray(targets)) {
     console.log('Invalid value for dns host:port', host, port)
     return
   }
@@ -77,7 +78,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
     if (pending < concurrentReqs) {
       pending++
       resolver
-        .resolve(getNextHostname())
+        .resolve(getNextHostname(targets))
         .then(() => {
           lastMinuteOk++
         })
@@ -119,12 +120,12 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
 }
 
 let idx = 0
-const getNextHostname = () => {
+const getNextHostname = (targets) => {
   idx++
-  if (idx >= hostnames.length) {
+  if (idx >= targets.length) {
     idx = 0
   }
-  return hostnames[idx]
+  return targets[idx]
 }
 
 const setMaxDnsReqs = (maxReqs) => {
