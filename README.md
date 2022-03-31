@@ -2,9 +2,14 @@
 
 [![Test](https://github.com/mgrybyk/uasword/actions/workflows/test.yml/badge.svg)](https://github.com/mgrybyk/uasword/actions/workflows/test.yml)
 
-> Optimised headless version of https://github.com/opengs/uashield
+> Multitarget DDoS tool based on [uashield](https://github.com/opengs/uashield) and [db1000n](https://github.com/Arriven/db1000n) lists.
 
-See also https://help-ukraine-win.super.site/
+![stats](docs/image.png)
+- attacks multiple targets in parallel
+- DNS flood
+- uses browser to overcome any antiddos protection (real browser detection)
+- run in Docker, Termux or anywhere with Nodejs installed.
+- IT ARMY of Ukraine lists are included as well
 
 ## Installation and Running
 
