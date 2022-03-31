@@ -8,7 +8,7 @@ const ATTEMPTS = 15
 // concurrent requests adopts based on error rate, but won't exceed the max value
 const MAX_CONCURRENT_REQUESTS = 256
 
-const UPDATE_COOKIES_INTERVAL = 10 * 60 * 1000
+const UPDATE_COOKIES_INTERVAL = 5 * 60 * 1000
 
 const ignoredErrCode = 'ECONNABORTED'
 
@@ -25,7 +25,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
     console.log('Invalid value for URL', url)
     return
   }
-  const printUrl = url.length > 37 ? url.substring(0, 38) + '...' : url
+  const printUrl = (useBrowser ? '[B] ' : '') + (url.length > 37 ? url.substring(0, 38) + '...' : url)
   const printIp = ip ? `[${ip}]` : ''
 
   let concurrentReqs = 9
@@ -65,8 +65,11 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
 
   // update cookies every 10 minutes
   const updateCookiesFn = async () => {
-    if (isActive && isRunning) {
+    if (isActive && isRunning && useBrowser) {
+      const concurrentReqsPrev = concurrentReqs
+      concurrentReqs = 3
       browserHeaders = await getRealBrowserHeaders(url, useBrowser)
+      concurrentReqs = concurrentReqsPrev
     }
   }
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
