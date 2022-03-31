@@ -1,6 +1,6 @@
 {
   "name": "uasword",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "axios": "^0.26.1",
     "express": "^4.17.3",
     "playwright-core": "^1.20.1",
-    "user-agents": "^1.0.971"
+    "user-agents": "^1.0.972"
   },
   "devDependencies": {
     "eslint": "^8.12.0",
