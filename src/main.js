@@ -4,8 +4,10 @@ const { run } = require('./spawnRunner')
 const { getSites, siteListUpdater } = require('./getTargets')
 const { statsLogger, statistics } = require('./stats')
 const { runBrowser } = require('./browser')
+const { analytics } = require('./analytics')
 
 const main = async () => {
+  analytics.onlineEvent()
   await runBrowser()
 
   const eventEmitter = new EventEmitter()

@@ -1,5 +1,6 @@
 const { setMaxDnsReqs } = require('./runner-dns')
 const { maxConcurrentUdpRequests } = require('./spawnRunner')
+const { analytics } = require('./analytics')
 
 // interval between printing stats and calculating error rate
 const logInterval = 60 * 1000
@@ -23,6 +24,7 @@ const statsLogger = (eventEmitter) => {
   })
 
   setInterval(() => {
+    analytics.onlineEvent()
     stats.length = 0
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
@@ -82,6 +84,7 @@ const statsLogger = (eventEmitter) => {
         `${statistics.total.activeRunners}/${statistics.total.slowRunners}/${statistics.total.totalRunners}`,
         '\n'
       )
+      analytics.statsEvent(statistics)
     }, 1000)
   }, logInterval)
 }
