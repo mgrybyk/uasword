@@ -5,11 +5,12 @@
 > Multitarget DDoS tool based on [uashield](https://github.com/opengs/uashield) and [db1000n](https://github.com/Arriven/db1000n) lists.
 
 ![stats](docs/stats.png)
+- run in Docker, Termux or anywhere with Nodejs installed.
 - attacks multiple targets in parallel
 - DNS flood
 - uses browser to overcome any antiddos protection (real browser detection)
-- run in Docker, Termux or anywhere with Nodejs installed.
 - IT ARMY of Ukraine lists are included as well
+- targets list updates automatically, run once and let it work
 
 ## Installation and Running
 
