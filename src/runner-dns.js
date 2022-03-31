@@ -120,6 +120,7 @@ const runnerDns = async ({ host, port = 53 } = {}, eventEmitter) => {
 
 let idx = 0
 const getNextHostname = () => {
+  idx++
   if (idx >= hostnames.length) {
     idx = 0
   }
