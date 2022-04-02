@@ -7,12 +7,16 @@
 DISCLAIMER: the software is not meant to be used for any kind of illegal or inappropriate purposes!
 
 ![stats](docs/stats.jpg)
-- run in Docker, [Termux](#Termux) or anywhere with Nodejs installed.
-- process multiple targets in parallel
-- advanced DNS
-- uses real browser to improve intensity
-- IT ARMY of Ukraine lists are included as well
+- run as [binary](https://github.com/mgrybyk/uasword/releases), in [Docker](#Docker), [Termux](#Termux)
+- supports multiple targets in parallel
+- advanced DNS methods
+- pretends real browser to improve performance
 - targets list updates automatically, run once and let it work
+- IT ARMY of Ukraine lists are included as well
+
+## Running with binaries
+
+Checkout the latest release here https://github.com/mgrybyk/uasword/releases, ex [windows](https://github.com/mgrybyk/uasword/releases/download/2.1.0/uasword-win.exe).
 
 ## Installation and Running
 
