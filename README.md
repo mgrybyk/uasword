@@ -53,7 +53,7 @@ Note: Play Store version of Termux is no longer updating, please use other apk p
 3. `pkg update` answer `y` when prompted
 4. `pkg install nodejs-lts` - installs nodejs
 5. `pkg install git` - installs git
-6. `https://github.com/mgrybyk/uasword.git` - clones the repo
+6. `git clone https://github.com/mgrybyk/uasword.git` - clones the repo
 7. `cd uasword` - switch to the cloned folder
 8. `npm install --omit dev --no-fund --no-audit` - install modules. Or just do `npm i`
 9. `node index` - starts the app
