@@ -6,7 +6,7 @@
 
 DISCLAIMER: the software is not meant to be used for any kind of illegal or inappropriate purposes!
 
-![stats](docs/stats.png)
+![stats](docs/stats.jpg)
 - run in Docker, [Termux](#Termux) or anywhere with Nodejs installed.
 - process multiple targets in parallel
 - advanced DNS
@@ -59,5 +59,4 @@ Note: Play Store version of Termux is no longer updating, please use other apk p
 7. `cd uasword` - switch to the cloned folder
 8. `npm install --omit dev --no-fund --no-audit` - install modules. Or just do `npm i`
 9. `node index` - starts the app
-
 
