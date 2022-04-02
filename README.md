@@ -2,13 +2,15 @@
 
 [![Test](https://github.com/mgrybyk/uasword/actions/workflows/test.yml/badge.svg)](https://github.com/mgrybyk/uasword/actions/workflows/test.yml)
 
-> Multitarget DDoS tool based on [uashield](https://github.com/opengs/uashield) and [db1000n](https://github.com/Arriven/db1000n) lists.
+> Multitarget tool based on uashield, db1000n and additional advanced dns lists.
+
+DISCLAIMER: the software is not meant to be used for any kind of illegal or inappropriate purposes!
 
 ![stats](docs/stats.png)
-- run in Docker, Termux or anywhere with Nodejs installed.
-- attacks multiple targets in parallel
-- DNS flood
-- uses browser to overcome any antiddos protection (real browser detection)
+- run in Docker, [Termux](#Termux) or anywhere with Nodejs installed.
+- process multiple targets in parallel
+- advanced DNS
+- uses real browser to improve intensity
 - IT ARMY of Ukraine lists are included as well
 - targets list updates automatically, run once and let it work
 
@@ -23,7 +25,7 @@
 
 ## Targets
 
-Several target lists is used, see [data/config.json](https://github.com/mgrybyk/uasword/blob/master/data/config.json). As for now uashield and db1000n lists are enabled.
+Several target lists is used, see [data/config.json](https://github.com/mgrybyk/uasword/blob/master/data/config.json) for more information.
 
 ## Docker
 
@@ -41,3 +43,19 @@ sudo mkdir -p /opt && sudo git clone https://github.com/mgrybyk/uasword.git /opt
 ### See Logs in Azure
 
 `journalctl -xe -u uasword.service -f`
+
+## Termux
+
+Note: Play Store version of Termux is no longer updating, please use other apk providers, see below.
+
+1. Install [Termux](https://termux.com/). Choose one of [F-Droid](https://f-droid.org/en/packages/com.termux/) | [GitHub](https://github.com/termux/termux-app/releases/tag/v0.118.0) | [apkpure](https://apkpure.com/termux/com.termux)
+2. In Termux run the following
+3. `pkg update` answer `y` when prompted
+4. `pkg install nodejs-lts` - installs nodejs
+5. `pkg install git` - installs git
+6. `https://github.com/mgrybyk/uasword.git` - clones the repo
+7. `cd uasword` - switch to the cloned folder
+8. `npm install --omit dev --no-fund --no-audit` - install modules. Or just do `npm i`
+9. `node index` - starts the app
+
+
