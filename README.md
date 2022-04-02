@@ -23,6 +23,8 @@ DISCLAIMER: the software is not meant to be used for any kind of illegal or inap
 - download chromium `npx playwright install --with-deps chromium`
 - run `node index`
 
+See [screenshot](docs/image.png) for step by step example for very new users
+
 ## Targets
 
 Several target lists is used, see [data/config.json](https://github.com/mgrybyk/uasword/blob/master/data/config.json) for more information.
