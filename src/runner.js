@@ -1,5 +1,5 @@
 const { sleep } = require('./helpers')
-const { spawnClientInstance, resolve4 } = require('./client/client')
+const { spawnClientInstance, resolve4, maxContentLength } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
 const { getRealBrowserHeaders } = require('./browser')
 
@@ -11,6 +11,7 @@ const MAX_CONCURRENT_REQUESTS = 256
 const UPDATE_COOKIES_INTERVAL = 9 * 60 * 1000
 
 const ignoredErrCode = 'ECONNABORTED'
+const maxSizeError = `maxContentLength size of ${maxContentLength} exceeded`
 
 /**
  * @param {Object} opts
@@ -28,7 +29,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   const printUrl = (useBrowser ? '[B] ' : '') + (url.length > 37 ? url.substring(0, 38) + '...' : url)
   const printIp = ip ? `[${ip}]` : ''
 
-  let concurrentReqs = 9
+  let concurrentReqs = 4
   console.log('Starting process for', printUrl, printIp)
 
   const urlObject = new URL(url)
@@ -75,11 +76,13 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
 
   const adaptivenessInterval = 15
+  let canIncrease = true
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
       rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
       lastMinuteOk = 0
       lastMinuteErr = 0
+      canIncrease = false
 
       if (errRate > 20) {
         concurrentReqs = Math.floor(concurrentReqs * 0.6)
@@ -87,8 +90,10 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
         concurrentReqs = Math.floor(concurrentReqs * 0.8)
       } else if (errRate > 5) {
         concurrentReqs = Math.floor(concurrentReqs * 0.9)
-      } else if (errRate < 1) {
+      } else if (errRate < 1 && canIncrease) {
         concurrentReqs = Math.min(concurrentReqs + 3, MAX_CONCURRENT_REQUESTS)
+      } else {
+        canIncrease = true
       }
     }
   }
@@ -139,7 +144,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
           }
         })
         .catch((err) => {
-          if (err.code !== ignoredErrCode) {
+          if (err.code !== ignoredErrCode && err.message !== maxSizeError) {
             lastMinuteErr++
           }
         })

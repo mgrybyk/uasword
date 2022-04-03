@@ -9,7 +9,7 @@ const ATTEMPTS = 15
 
 // wait 1ms if concurrent requests limit is reached
 const REQ_DELAY = 1
-let MAX_CONCURRENT_REQUESTS = 100
+let MAX_CONCURRENT_REQUESTS = 20
 
 /**
  * @param {Object} opts

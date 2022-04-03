@@ -18,10 +18,12 @@ const resolve4 = async (hostname, prevIp) => {
   }
 }
 
+const maxContentLength = 104900
 const validateStatus = () => true
 
 const spawnClientInstance = (baseURL) => {
   const client = axios.create({
+    maxContentLength,
     baseURL,
     timeout: 12000,
     validateStatus,
@@ -42,4 +44,4 @@ const spawnClientInstance = (baseURL) => {
   return client
 }
 
-module.exports = { spawnClientInstance, resolve4 }
+module.exports = { spawnClientInstance, resolve4, maxContentLength }
