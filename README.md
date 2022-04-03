@@ -40,6 +40,13 @@ Several target lists is used, see [data/config.json](https://github.com/mgrybyk/
 
 Docker image published to https://hub.docker.com/r/atools/uasword
 
+## Ubuntu VM (ex digital ocean)
+
+Run as root
+```
+mkdir -p /opt && git clone https://github.com/mgrybyk/uasword.git /opt/uasword && /opt/uasword/setup.sh
+```
+
 ## Azure Custom Data
 
 ![Azure Custom data](docs/azure_custom_data.png)
