@@ -1,5 +1,7 @@
 #!/bin/bash
 
+AZURE_RESOURCE_GROUP='vm1_group'
+
 usage() {
 echo "
 Usage $0 [options]
@@ -18,17 +20,19 @@ invalid_input() {
     usage
 }
 
-while (( "$#" )); do
+while (( "$#" )); 
+do
     case $1 in
-        start) start=$2; shift 2;;
-        stop) stop=$2; shift 2 ;;
-        restart) restart=$2; shift 2 ;;
-        status) status=$2; shift 2 ;;
-        ip) ip=$2; shift 2 ;;
+        start) start=$1; shift;;
+        stop) stop=$1; shift;;
+        restart) restart=$1; shift;;
+        status) status=$1; shift;;
+        ip) ip=$1; shift;;
         help) usage;;
         *) invalid_input "Unknown parameter : $1";;
     esac
 done
+
 
 AZURE_RESOURCE_GROUP='vm1_group'
 
