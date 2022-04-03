@@ -9,7 +9,7 @@ const ATTEMPTS = 15
 
 // wait 1ms if concurrent requests limit is reached
 const REQ_DELAY = 1
-let MAX_CONCURRENT_REQUESTS = 20
+let MAX_CONCURRENT_REQUESTS = 8
 
 /**
  * @param {Object} opts
@@ -30,7 +30,7 @@ const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmi
   const resolver = new Resolver({ timeout: 6000, tries: 1 })
   resolver.setServers([host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`])
 
-  let concurrentReqs = MAX_CONCURRENT_REQUESTS
+  let concurrentReqs = targets.length
   let isRunning = true
   let isActive = true
   let pending = 0
@@ -41,10 +41,9 @@ const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmi
   let errRate = 0
   let total_reqs = 0
   let new_reqs = 0
-  let rps = 0
 
   const getStatsFn = () => {
-    eventEmitter.emit('RUNNER_STATS', { type: 'dns', host, port, total_reqs, new_reqs, errRate, rps, isActive })
+    eventEmitter.emit('RUNNER_STATS', { type: 'dns', host, port, total_reqs, new_reqs, errRate, isActive })
     new_reqs = 0
   }
   eventEmitter.on('GET_STATS', getStatsFn)
@@ -57,18 +56,17 @@ const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmi
   const adaptivenessInterval = 10
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
-      rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
       lastMinuteOk = 0
       lastMinuteErr = 0
 
       if (errRate > 20) {
-        concurrentReqs = Math.floor(rps * 0.6)
+        concurrentReqs = Math.floor(concurrentReqs * 0.6)
       } else if (errRate > 10) {
-        concurrentReqs = Math.floor(rps * 0.8)
+        concurrentReqs = Math.floor(concurrentReqs * 0.8)
       } else if (errRate > 5) {
-        concurrentReqs = Math.floor(rps * 0.9)
-      } else if (errRate < 2) {
-        concurrentReqs = Math.min(rps + 5, MAX_CONCURRENT_REQUESTS)
+        concurrentReqs = Math.floor(concurrentReqs * 0.9)
+      } else if (errRate < 1) {
+        concurrentReqs = Math.min(concurrentReqs + 5, MAX_CONCURRENT_REQUESTS)
       }
     }
   }
@@ -99,7 +97,7 @@ const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmi
       if (failureAttempts >= ATTEMPTS) {
         isRunning = false
       } else {
-        concurrentReqs = Math.floor(MAX_CONCURRENT_REQUESTS / 4)
+        concurrentReqs = targets.length
         isActive = false
         await sleep(nextDelay)
         isActive = true

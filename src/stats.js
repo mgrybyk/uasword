@@ -3,7 +3,8 @@ const { maxConcurrentUdpRequests } = require('./spawnRunner')
 const { analytics } = require('./analytics')
 
 // interval between printing stats and calculating error rate
-const logInterval = 60 * 1000
+const logIntervalSeconds = 60
+const logInterval = logIntervalSeconds * 1000
 const statistics = {}
 
 /**
@@ -28,8 +29,12 @@ const statsLogger = (eventEmitter) => {
     stats.length = 0
     eventEmitter.emit('GET_STATS')
     setTimeout(() => {
-      statistics.activeRunners = stats.filter(({ isActive, rps }) => isActive && rps > 0)
-      statistics.slowRunners = stats.filter(({ isActive, rps }) => isActive && rps === 0)
+      stats.forEach((x) => {
+        x.rps = Math.floor(10 * (x.new_reqs / logIntervalSeconds)) / 10
+      })
+
+      statistics.activeRunners = stats.filter(({ isActive, rps }) => isActive && rps > 0.4)
+      statistics.slowRunners = stats.filter(({ isActive, rps }) => isActive && rps <= 0.4)
 
       const totalHttpRps = statistics.activeRunners
         .filter(({ type }) => type === 'http')
@@ -77,9 +82,9 @@ const statsLogger = (eventEmitter) => {
       }
 
       console.log(
-        `http reqs: ${totalHttpRequests}, rps: ${totalHttpRps}`,
+        `http reqs: ${totalHttpRequests}, rps: ${Math.floor(totalHttpRps)}`,
         '|',
-        `dns reqs: ${totalDnsRequests}, rps: ${totalDnsRps}`,
+        `dns reqs: ${totalDnsRequests}, rps: ${Math.floor(totalDnsRps)}`,
         '| Runners (active/slow/total)',
         `${statistics.total.activeRunners}/${statistics.total.slowRunners}/${statistics.total.totalRunners}`,
         '\n'

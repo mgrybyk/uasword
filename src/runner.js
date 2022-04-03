@@ -47,7 +47,6 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   let errRate = 0
   let total_reqs = 0
   let new_reqs = 0
-  let rps = 0
 
   const getStatsFn = () => {
     eventEmitter.emit('RUNNER_STATS', {
@@ -57,7 +56,6 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
       total_reqs,
       new_reqs,
       errRate,
-      rps,
       isActive,
     })
     new_reqs = 0
@@ -79,7 +77,6 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   let canIncrease = true
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
-      rps = Math.floor((lastMinuteOk + lastMinuteErr) / adaptivenessInterval)
       lastMinuteOk = 0
       lastMinuteErr = 0
       canIncrease = false
