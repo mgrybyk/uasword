@@ -2,7 +2,41 @@
 
 AZURE_RESOURCE_GROUP='vm1_group'
 
-if [ $1 == "start" ];
+usage() {
+echo "
+Usage $0 [options]
+
+Options:
+    start     start vm's in resource group
+    stop      stop vm's in resource group
+    restart   restart vm's in resource group
+    status    status vm's in resource group
+    ip        list of ip's
+" 1>&2; exit 1;
+}
+
+invalid_input() {
+    echo "$1"
+    usage
+}
+
+while (( "$#" )); 
+do
+    case $1 in
+        start) start=$1; shift;;
+        stop) stop=$1; shift;;
+        restart) restart=$1; shift;;
+        status) status=$1; shift;;
+        ip) ip=$1; shift;;
+        help) usage;;
+        *) invalid_input "Unknown parameter : $1";;
+    esac
+done
+
+
+AZURE_RESOURCE_GROUP='vm1_group'
+
+if [[ $start ]];
 then
     VM_NAMES=$(az vm list -g $AZURE_RESOURCE_GROUP --show-details --query "[?powerState=='VM deallocated'].{ name: name }" -o tsv)
     for NAME in $VM_NAMES
@@ -13,7 +47,7 @@ then
     done
 fi
 
-if [ $1 == "stop" ];
+if [[ $stop ]];
 then
     VM_NAMES=$(az vm list -g $AZURE_RESOURCE_GROUP --show-details --query "[?powerState=='VM running'].{ name: name }" -o tsv)
     for NAME in $VM_NAMES
@@ -24,7 +58,7 @@ then
     done
 fi
 
-if [ $1 == "restart" ];
+if [[ $restart ]];
 then
     VM_NAMES=$(az vm list -g $AZURE_RESOURCE_GROUP --show-details --query "[?powerState=='VM running'].{ name: name }" -o tsv)
     echo "Restarting all running VMs"
@@ -38,7 +72,7 @@ then
     done
 fi
 
-if [ $1 == "status" ];
+if [[ $status ]];
 then
     echo "Power Status of all VMs"
     echo "-----------------------"
@@ -46,7 +80,7 @@ then
 fi
 
 
-if [ $1 == "ip" ];
+if [[ $ip ]];
 then
     az vm list -g $AZURE_RESOURCE_GROUP --show-details --query "[?powerState=='VM running'].{ name:name, ip: publicIps }" -o table
 fi
