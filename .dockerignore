@@ -3,3 +3,5 @@ node_modules
 .github
 .vscode
 test
+dist
+docs
