@@ -7,7 +7,7 @@ const { Resolver } = require('dns/promises')
 const { randomInt } = require('../helpers')
 
 const resolver = new Resolver()
-resolver.setServers(['1.1.1.1', '8.8.8.8'])
+resolver.setServers(['77.88.8.8', '77.88.8.1', '1.1.1.1', '8.8.8.8'])
 
 const resolve4 = async (hostname, prevIp) => {
   try {

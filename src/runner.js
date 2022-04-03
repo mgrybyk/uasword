@@ -8,7 +8,7 @@ const ATTEMPTS = 15
 // concurrent requests adopts based on error rate, but won't exceed the max value
 const MAX_CONCURRENT_REQUESTS = 256
 
-const UPDATE_COOKIES_INTERVAL = 5 * 60 * 1000
+const UPDATE_COOKIES_INTERVAL = 9 * 60 * 1000
 
 const ignoredErrCode = 'ECONNABORTED'
 
@@ -33,7 +33,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
 
   const urlObject = new URL(url)
   let newIp = ip || (await resolve4(urlObject.hostname))
-  let browserHeaders = await getRealBrowserHeaders(url, useBrowser)
+  let browserHeaders = await getRealBrowserHeaders(url, useBrowser && newIp)
   const client = spawnClientInstance(url)
 
   let isRunning = true
@@ -68,7 +68,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
     if (isActive && isRunning && useBrowser) {
       const concurrentReqsPrev = concurrentReqs
       concurrentReqs = 3
-      browserHeaders = await getRealBrowserHeaders(url, useBrowser)
+      browserHeaders = await getRealBrowserHeaders(url, useBrowser && newIp)
       concurrentReqs = concurrentReqsPrev
     }
   }
@@ -115,7 +115,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
         isActive = false
         await sleep(nextDelay)
         newIp = ip || (await resolve4(urlObject.hostname, newIp))
-        browserHeaders = await getRealBrowserHeaders(url, useBrowser)
+        browserHeaders = await getRealBrowserHeaders(url, useBrowser && newIp)
         isActive = true
         lastMinuteOk = 0
         lastMinuteErr = 0

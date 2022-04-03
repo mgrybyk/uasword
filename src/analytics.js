@@ -11,10 +11,10 @@ const analytics = {
   },
   statsEvent: (stats) => {
     visitor.event('total-http-req', `${stats.total.totalHttpRequests}`, errorFn)
-    visitor.event('total-http-rps', `${stats.total.totalHttpRps}`, errorFn)
+    // visitor.event('total-http-rps', `${stats.total.totalHttpRps}`, errorFn)
     visitor.event('total-dns-req', `${stats.total.totalDnsRequests}`, errorFn)
-    visitor.event('total-dns-rps', `${stats.total.totalDnsRps}`, errorFn)
-    visitor.event('active-runners', `${stats.total.activeRunners}`, errorFn)
+    // visitor.event('total-dns-rps', `${stats.total.totalDnsRps}`, errorFn)
+    // visitor.event('active-runners', `${stats.total.activeRunners}`, errorFn)
   },
 }
 

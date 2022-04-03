@@ -95,7 +95,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
     ))
   )
 
-  return urlList
+  return filterDups(urlList)
 }
 
 const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false } = {}) => {
@@ -114,6 +114,61 @@ const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false
       }
     }
   }
+  return urlList
+}
+
+/**
+ * @param {Array<{method: 'get'; page: string; ip?: string; useBrowser?:boolean} | {method: 'dns'; host: string; port: number;}>} urlList
+ */
+const filterDups = (urlList) => {
+  const toDelete = []
+  const processed = []
+
+  urlList.forEach((x) => {
+    if (typeof x.page === 'string' && x.page.endsWith('/')) {
+      x.page = x.page.slice(0, -1)
+    }
+  })
+
+  urlList
+    .filter((x) => x.method === 'get')
+    .forEach((x) => {
+      if (!processed.includes(x)) {
+        const possibleDups = urlList.filter((y) => y.page === x.page)
+        processed.push(...possibleDups)
+
+        if (possibleDups.length > 1) {
+          const withBrowser = possibleDups.findIndex((y) => typeof y.useBrowser === 'boolean')
+          if (withBrowser > -1) {
+            possibleDups.splice(withBrowser, 1)
+          } else {
+            const withIp = possibleDups.filter((y) => typeof y.ip !== 'undefined')
+            if (withIp.length === 0) {
+              possibleDups.length = possibleDups.length - 1
+            } else {
+              while (withIp.length > 1) {
+                const possibleDup = withIp.pop()
+                const ipDup = possibleDups.findIndex((y) => y === possibleDup && y.ip === possibleDup.ip)
+                if (ipDup > -1) {
+                  possibleDups.splice(ipDup, 1)
+                }
+              }
+            }
+          }
+
+          toDelete.push(
+            ...possibleDups.filter((y) => typeof y.useBrowser === 'undefined' && typeof y.ip === 'undefined')
+          )
+        }
+      }
+    })
+  processed.length = 0
+
+  while (toDelete.length > 0) {
+    const idx = urlList.indexOf(toDelete.pop())
+    urlList.splice(idx, 1)
+  }
+
   return urlList
 }
 

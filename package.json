@@ -1,12 +1,13 @@
 {
   "name": "uasword",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index",
     "test": "jest",
-    "lint": "eslint --ext .js --ignore-path .gitignore ."
+    "lint": "eslint --ext .js --ignore-path .gitignore .",
+    "pack": "PKG_CACHE_PATH=./dist/.cache pkg index.js -o dist/uasword -t node16-win,node16-mac"
   },
   "keywords": [
     "uasword",
@@ -21,9 +22,9 @@
   "dependencies": {
     "axios": "^0.26.1",
     "express": "^4.17.3",
-    "playwright-core": "^1.20.1",
+    "playwright-core": "^1.20.2",
     "universal-analytics": "^0.5.3",
-    "user-agents": "^1.0.972",
+    "user-agents": "^1.0.975",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -32,6 +33,6 @@
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "prettier": "^2.6.1"
+    "prettier": "^2.6.2"
   }
 }

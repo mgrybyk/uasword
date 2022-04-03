@@ -104,6 +104,12 @@ const blacklist = [
   'https://maps.google.com/**',
   'https://translate.google.com/**',
   'https://consent.cookiebot.com/**',
+  /.*googletagmanager.com\/.*/,
+  /.*yandex.ru\/.*/,
+  /.*gamepass.com\/.*/,
+  /.*yastatic.net\/.*/,
+  /.*livechatinc.com\/.*/,
+  /.*msftncsi.com\/.*/,
 ]
 
 const abortBlocked = async (ctx) => {
