@@ -8,7 +8,7 @@ const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 15
 
 // wait 1ms if concurrent requests limit is reached
-const REQ_DELAY = 1
+const REQ_DELAY = require('os').cpus().length > 1 ? 1 : 2
 let MAX_CONCURRENT_REQUESTS = 8
 
 /**
@@ -53,7 +53,7 @@ const runnerDns = async ({ host, port = 53, targets = hostnames } = {}, eventEmi
   }
   eventEmitter.once('RUNNER_STOP', stopEventFn)
 
-  const adaptivenessInterval = 10
+  const adaptivenessInterval = 15
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
       lastMinuteOk = 0

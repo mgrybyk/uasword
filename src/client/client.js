@@ -25,10 +25,10 @@ const spawnClientInstance = (baseURL) => {
   const client = axios.create({
     maxContentLength,
     baseURL,
-    timeout: 12000,
+    timeout: 15000,
     validateStatus,
     responseType: 'arraybuffer',
-    maxRedirects: 10,
+    maxRedirects: 2,
   })
 
   client.interceptors.request.use((config) => {

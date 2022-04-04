@@ -2,11 +2,13 @@ const { sleep } = require('./helpers')
 const { spawnClientInstance, resolve4, maxContentLength } = require('./client/client')
 const { generateRequestHeaders } = require('./client/headers')
 const { getRealBrowserHeaders } = require('./browser')
+const { cpus } = require('os')
 
 const FAILURE_DELAY = 60 * 1000
 const ATTEMPTS = 15
 // concurrent requests adopts based on error rate, but won't exceed the max value
-const MAX_CONCURRENT_REQUESTS = 256
+const MAX_CONCURRENT_REQUESTS = cpus().length > 1 ? 256 : 64
+const REQ_DELAY = cpus().length > 1 ? 1 : 2
 
 const UPDATE_COOKIES_INTERVAL = 9 * 60 * 1000
 
@@ -29,7 +31,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   const printUrl = (useBrowser ? '[B] ' : '') + (url.length > 37 ? url.substring(0, 38) + '...' : url)
   const printIp = ip ? `[${ip}]` : ''
 
-  let concurrentReqs = 4
+  let concurrentReqs = 3
   console.log('Starting process for', printUrl, printIp)
 
   const urlObject = new URL(url)
@@ -73,13 +75,11 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
   }
   let updateCookiesInterval = setInterval(updateCookiesFn, UPDATE_COOKIES_INTERVAL)
 
-  const adaptivenessInterval = 15
-  let canIncrease = true
+  const adaptivenessInterval = 20
   const adaptIntervalFn = () => {
     if (failureAttempts === 0) {
       lastMinuteOk = 0
       lastMinuteErr = 0
-      canIncrease = false
 
       if (errRate > 20) {
         concurrentReqs = Math.floor(concurrentReqs * 0.6)
@@ -87,10 +87,8 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
         concurrentReqs = Math.floor(concurrentReqs * 0.8)
       } else if (errRate > 5) {
         concurrentReqs = Math.floor(concurrentReqs * 0.9)
-      } else if (errRate < 1 && canIncrease) {
+      } else if (errRate < 1) {
         concurrentReqs = Math.min(concurrentReqs + 3, MAX_CONCURRENT_REQUESTS)
-      } else {
-        canIncrease = true
       }
     }
   }
@@ -152,7 +150,7 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
     } else {
-      await sleep(1)
+      await sleep(REQ_DELAY)
     }
   }
 
