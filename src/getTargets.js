@@ -16,7 +16,7 @@ const db1000n = 'db1000n_v0.7'
  */
 const siteListUpdater = (eventEmitter, urlList) => {
   setInterval(async () => {
-    const updatedUrlList = await getSites({ ignoreError: true })
+    const updatedUrlList = await getSites()
 
     if (JSON.stringify(updatedUrlList) !== JSON.stringify(urlList)) {
       eventEmitter.emit('RUNNER_STOP')
@@ -32,7 +32,7 @@ const siteListUpdater = (eventEmitter, urlList) => {
  *
  * @returns {Promise<Array<{method: 'get'; page: string; ip?: string; useBrowser?:boolean} | {method: 'dns'; host: string; port: number;}>>}
  */
-const getSites = async ({ ignoreError = false } = {}) => {
+const getSites = async () => {
   const urlList = []
 
   // try get config
@@ -49,9 +49,6 @@ const getSites = async ({ ignoreError = false } = {}) => {
     }
   } catch (err) {
     console.log(new Date().toISOString(), 'WARN: Failed to fetch config', configUrl)
-    if (!ignoreError) {
-      throw err
-    }
   }
 
   // uashield, uasword
@@ -59,8 +56,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
     ...(await getSitesFn(
       sitesUrls.object,
       (d) => !Array.isArray(d) || (d.length > 0 && typeof d[0] !== 'object'),
-      (d) => d.filter((x) => x.method === 'get' || x.method === 'dns'),
-      { ignoreError }
+      (d) => d.filter((x) => x.method === 'get' || x.method === 'dns')
     ))
   )
 
@@ -73,8 +69,7 @@ const getSites = async ({ ignoreError = false } = {}) => {
         d
           .split('\n')
           .filter((s) => s.startsWith('http'))
-          .map((page) => ({ page, method: 'get' })),
-      { ignoreError: true }
+          .map((page) => ({ page, method: 'get' }))
     ))
   )
 
@@ -90,15 +85,14 @@ const getSites = async ({ ignoreError = false } = {}) => {
             method: 'get',
             page: args.request.path,
             ip: args.client?.static_host?.addr.split(':')[0],
-          })),
-      { ignoreError: true }
+          }))
     ))
   )
 
   return filterDups(urlList)
 }
 
-const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false } = {}) => {
+const getSitesFn = async (sitesUrls, assertionFn, parseFn) => {
   const urlList = []
   for (const sitesUrl of sitesUrls) {
     try {
@@ -109,9 +103,6 @@ const getSitesFn = async (sitesUrls, assertionFn, parseFn, { ignoreError = false
       urlList.push(...parseFn(res.data))
     } catch (err) {
       console.log(new Date().toISOString(), 'WARN: Failed to fetch new urls list from', sitesUrl)
-      if (!ignoreError) {
-        throw err
-      }
     }
   }
   return urlList
