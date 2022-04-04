@@ -9,7 +9,7 @@
     {
       "enabled": true,
       "name": "SHIELD",
-      "url": "https://gitlab.com/ua_cyber_shield/targets/-/raw/master/sites.json",
+      "url": "https://raw.githubusercontent.com/opengs/uashieldtargets/master/sites.json",
       "type": "object"
     },
     {
