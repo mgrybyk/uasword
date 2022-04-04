@@ -151,8 +151,9 @@ const runner = async ({ page: url, ip, useBrowser } = {}, eventEmitter) => {
           new_reqs++
           errRate = Math.floor(100 * (lastMinuteErr / (1 + lastMinuteErr + lastMinuteOk)))
         })
+    } else {
+      await sleep(1)
     }
-    await sleep(2)
   }
 
   clearInterval(updateCookiesInterval)

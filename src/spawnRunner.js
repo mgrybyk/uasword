@@ -2,7 +2,7 @@ const { sleep } = require('./helpers')
 const { runner } = require('./runner')
 const { runnerDns, setMaxDnsReqs } = require('./runner-dns')
 
-const maxConcurrentUdpRequests = 400
+const maxConcurrentUdpRequests = 900
 
 /**
  * @param {EventEmitter} eventEmitter
