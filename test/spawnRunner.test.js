@@ -1,5 +1,5 @@
 const spawnRunner = require('../src/spawnRunner')
 
 test('maxConcurrentUdpRequests', async () => {
-  expect(spawnRunner.maxConcurrentUdpRequests).toEqual(400)
+  expect(spawnRunner.maxConcurrentUdpRequests).toEqual(900)
 })
